@@ -1,0 +1,46 @@
+.banner{
+    background-position:left-80px;
+}
+.fire-text {
+  color: orange;
+  text-shadow: 
+    0 0 5px #ff4500, 
+    0 0 10px #ff6347, 
+    0 0 15px #ff4500, 
+    0 0 20px #ff8c00;
+  animation: flicker 0.2s infinite alternate;
+}
+
+@keyframes flicker {
+  0% {
+    text-shadow: 
+      0 0 5px #ff4500, 
+      0 0 10px #ff6347, 
+      0 0 15px #ff4500, 
+      0 0 20px #ff8c00;
+  }
+  100% {
+    text-shadow: 
+      0 0 8px #ff4500, 
+      0 0 12px #ff6347, 
+      0 0 18px #ff4500, 
+      0 0 25px #ff8c00;
+  }
+}
+
+.fire {
+  background: url('https://daily.jstor.org/wp-content/uploads/2015/08/Fire.jpg') repeat-x bottom;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fire 12s linear infinite;
+}
+
+@keyframes fire {
+  0% {
+    background-position: left;
+  }
+  
+  100% {
+    background-position: right;
+  }
+}
