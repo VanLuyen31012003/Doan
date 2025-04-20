@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Card, Image, Typography, Tag, Pagination, Input, Select,  Empty, Spin, Button } from 'antd';
 import { SearchOutlined, FilterOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { IoMdHeart } from "react-icons/io";
 
 function AllProducts() {
   // Mock data - trong thực tế bạn sẽ lấy dữ liệu từ API
@@ -160,16 +161,23 @@ function AllProducts() {
                     </Title>
                     <Text type="secondary" className="mb-1">{product.brand}</Text>
                     <div className="mt-auto pt-2">
-                      <Title level={4}  className="mb-2 fire">{formatPrice(product.price)}</Title>
+                      <Title level={4} className="mb-2 fire">{formatPrice(product.price)}</Title>
+                      <div className='flex justify-between items-center px-2'>
+                         <Link to="/chitietsp">
+                        <IoMdHeart size={36} className='text-cam hover:scale-110 duration-300' />
+
+                      </Link>
                       <Link to="/chitietsp">
-                         <Button
+                         <button
                         icon={<ShoppingCartOutlined />} 
                         block
-                        className='bg-cam  hover:bg-ghi text-white !important'
+                        className='bg-cam py-2 px-4 rounded-sm  hover:bg-ghi text-white !important'
                       >
                         Đặt xe ngay
-                      </Button>
+                        </button>
                      </Link>
+                      </div>
+                     
                      
                     </div>
                   </div>

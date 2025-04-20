@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Set;
+
 @Data
 @Entity
 @Builder
@@ -19,5 +21,6 @@ public class NguoiDung {
      String  ho_ten ;
      String  email ;
      String  mat_khau ;
-     Integer vai_tro;
+    @ElementCollection
+     Set<String> vai_tro;
 }

@@ -19,11 +19,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import javax.print.DocFlavor;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
+import java.util.StringJoiner;
 
 @Service
 public class Authenservice {
@@ -40,7 +44,7 @@ public class Authenservice {
             if(nguoiDungRepository.findByEmail(authenRequest.getUsername()) != null) {
                 NguoiDung taiKhoan =nguoiDungRepository.findByEmail(authenRequest.getUsername()).get();
                 if (taiKhoan.getMat_khau().equals(authenRequest.getPassword())) {
-                    var token = generateToken(authenRequest.getUsername());
+                    var token = generateToken(taiKhoan);
                     return AuthenResponse.builder().
                             token(token).
                             authenticated(true).
@@ -64,16 +68,16 @@ public class Authenservice {
                 .valid( verified && expityTime.after(new Date()))
                 .build();
     }
-    private String generateToken(String username){
+    private String generateToken(NguoiDung nguoiDung){
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(username)
+                .subject(nguoiDung.getEmail())
                 .issuer("fromluyen")
                 .issueTime(new Date())
                 .expirationTime(new Date(
-                        Instant.now().plus(1, ChronoUnit.HOURS).toEpochMilli()
+                        Instant.now().plus(100000, ChronoUnit.HOURS).toEpochMilli()
                 ))
-                .claim("customClaim","custom")
+                .claim("scope",buildScope(nguoiDung))
                 .build();
         Payload payload =new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject =new JWSObject(header,payload);
@@ -85,6 +89,12 @@ public class Authenservice {
             throw new RuntimeException(e);
 
         }
+    }
+    private  String buildScope(NguoiDung nguoiDung ){
+        StringJoiner stringJoiner = new StringJoiner(",");
+        if(!CollectionUtils.isEmpty(nguoiDung.getVai_tro()))
+            nguoiDung.getVai_tro().forEach(stringJoiner::add);
+        return stringJoiner.toString();
 
     }
 }

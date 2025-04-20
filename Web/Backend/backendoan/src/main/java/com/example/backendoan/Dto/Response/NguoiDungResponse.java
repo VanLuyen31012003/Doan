@@ -7,6 +7,8 @@ import jakarta.persistence.Id;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Set;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,5 +18,5 @@ public class NguoiDungResponse {
     String  ho_ten ;
     String  email ;
     String  mat_khau ;
-    Integer vai_tro;
+    Set<String> vai_tro;
 }
