@@ -4,8 +4,11 @@ import com.example.backendoan.Dto.Request.DonDatXeRequest;
 import com.example.backendoan.Dto.Response.ApiResponse;
 import com.example.backendoan.Dto.Response.DonDatXeResponse;
 import com.example.backendoan.Entity.DonDatXe;
+import com.example.backendoan.Entity.Xe;
+import com.example.backendoan.Repository.XeRepository;
 import com.example.backendoan.Service.DonDatXeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,6 +19,7 @@ import java.util.List;
 public class DonDatXeController {
     @Autowired
     private DonDatXeService donDatXeService;
+
     //lấy tất cả đơn đặt xe
     @GetMapping("/getalldon")
     public List<DonDatXeResponse> getAllDonDatXe() {
@@ -55,4 +59,24 @@ public class DonDatXeController {
                         .data(donDatXeService.getDonDatXeByKhachangId(id))
                         .build();
     }
+    @GetMapping("/getdonhangbytoken")
+    public ApiResponse<List<DonDatXeResponse>> getDonDatXeByToken() {
+        return ApiResponse.<List<DonDatXeResponse>>builder()
+                        .message("Lấy danh sách đơn đặt xe theo token thành công")
+                        .data(donDatXeService.getDonDatXeByToken())
+                        .build();
+    }
+    @GetMapping("/layxetheomauxe/{mauXeId}")
+    public ResponseEntity<List<Xe>> getAvailableXeByMauXeId(@PathVariable Integer mauXeId) {
+        try {
+            List<Xe> xeList = donDatXeService.findAvailableXeByMauXeId(mauXeId);
+            if (xeList.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            }
+            return ResponseEntity.ok(xeList);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
 }

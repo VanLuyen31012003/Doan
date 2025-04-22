@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface DonDatXeRepository extends JpaRepository<DonDatXe, Integer> {
     List<DonDatXe> findByKhachHangId(Integer khachHangId);
+    List<DonDatXe> findByTrangThai(Integer trangThai);
 }

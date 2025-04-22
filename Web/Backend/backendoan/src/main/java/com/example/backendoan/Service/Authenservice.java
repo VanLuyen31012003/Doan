@@ -4,7 +4,9 @@ import com.example.backendoan.Dto.Request.AuthenRequest;
 import com.example.backendoan.Dto.Request.IntrospectRequest;
 import com.example.backendoan.Dto.Response.AuthenResponse;
 import com.example.backendoan.Dto.Response.IntrospctReponse;
+import com.example.backendoan.Entity.KhachHang;
 import com.example.backendoan.Entity.NguoiDung;
+import com.example.backendoan.Repository.KhachHangRepository;
 import com.example.backendoan.Repository.NguoiDungRepository;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;
@@ -34,11 +36,31 @@ public class Authenservice {
     private static final Logger log = LoggerFactory.getLogger(Authenservice.class);
     @Autowired
     private NguoiDungRepository nguoiDungRepository;
+    @Autowired
+    private KhachHangRepository khachHangRepository;
     @NonFinal
     @Value("${jwt.secret}")
     protected  String SIGNER_KEY ;
 //            "1TjXchw5FloeSb63Kc+DFhtARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij";
 
+    public AuthenResponse authenticatekhach ( AuthenRequest authenRequest) {
+        try {
+            if(khachHangRepository.findByEmail(authenRequest.getUsername()) != null) {
+                KhachHang khachHang = khachHangRepository.findByEmail(authenRequest.getUsername()).get();
+                if (khachHang.getMatKhau().equals(authenRequest.getPassword())) {
+                    var token = generateTokenkhachhang(khachHang);
+                    return AuthenResponse.builder().
+                            token(token).
+                            authenticated(true).
+                            build();
+                }
+                else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
+            }
+            else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
+        }catch (Exception e) {
+            return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
+        }
+    }
     public AuthenResponse authenticate( AuthenRequest authenRequest) {
         try {
             if(nguoiDungRepository.findByEmail(authenRequest.getUsername()) != null) {
@@ -72,7 +94,7 @@ public class Authenservice {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(nguoiDung.getEmail())
-                .issuer("fromluyen")
+                .issuer("from "+nguoiDung.getEmail())
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(100000, ChronoUnit.HOURS).toEpochMilli()
@@ -97,4 +119,28 @@ public class Authenservice {
         return stringJoiner.toString();
 
     }
+    private String generateTokenkhachhang(KhachHang khachHang){
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                .subject(khachHang.getEmail())
+                .issuer("from "+khachHang.getEmail())
+                .issueTime(new Date())
+                .expirationTime(new Date(
+                        Instant.now().plus(100000, ChronoUnit.HOURS).toEpochMilli()
+                ))
+                .claim("scope","CUSTOMER")
+                .build();
+        Payload payload =new Payload(jwtClaimsSet.toJSONObject());
+        JWSObject jwsObject =new JWSObject(header,payload);
+        try {
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
+            return jwsObject.serialize();
+        } catch (JOSEException e) {
+            log.error("lỗi tạo token",e);
+            throw new RuntimeException(e);
+
+        }
+    }
+
 }

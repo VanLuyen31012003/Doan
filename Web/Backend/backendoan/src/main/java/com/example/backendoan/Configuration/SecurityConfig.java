@@ -25,7 +25,7 @@ import javax.crypto.spec.SecretKeySpec;
 public class SecurityConfig {
     @Value("${jwt.secret}")
     protected  String SIGNER_KEY ;
-    private final String [] Public_EnpointPost={"/auth/login","/auth/introspect","/nguoidung/addnguoidung"};
+    private final String [] Public_EnpointPost={"/auth/login","/auth/introspect","/auth/loginbykhachhang","/nguoidung/addnguoidung"};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {

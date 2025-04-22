@@ -18,6 +18,7 @@ public class MauXe {
     @Column(name = "mau_xe_id")
     private Integer mauXeId;
 
+
     @Column(name = "ten_mau", nullable = false)
     private String tenMau;
 

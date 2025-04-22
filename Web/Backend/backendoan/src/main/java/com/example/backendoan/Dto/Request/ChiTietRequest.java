@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 public class ChiTietRequest  {
 
     private Integer xeId;
+    private Integer mauXeId;
     private Integer soNgayThue;
     private BigDecimal thanhTien;
 }

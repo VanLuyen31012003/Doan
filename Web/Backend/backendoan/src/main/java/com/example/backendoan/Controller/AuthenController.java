@@ -20,10 +20,20 @@ import java.text.ParseException;
 public class AuthenController {
     @Autowired
     Authenservice authenservice;
+//    logibyngoidung
     @PostMapping("/login")
     ApiResponse<AuthenResponse> authenticate(@RequestBody AuthenRequest authenRequest)
     {
         var result = authenservice.authenticate(authenRequest);
+        return ApiResponse.<AuthenResponse>builder()
+                .data(result)
+                .build();
+    }
+    //loginbykhachhang
+    @PostMapping("/loginbykhachhang")
+    ApiResponse<AuthenResponse> authenticatebykhachhang(@RequestBody AuthenRequest authenRequest)
+    {
+        var result = authenservice.authenticatekhach(authenRequest);
         return ApiResponse.<AuthenResponse>builder()
                 .data(result)
                 .build();

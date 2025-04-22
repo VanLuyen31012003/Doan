@@ -6,13 +6,13 @@ import com.example.backendoan.Dto.Response.ChiTietDonDatXeReponse;
 import com.example.backendoan.Dto.Response.DonDatXeResponse;
 import com.example.backendoan.Entity.ChiTietDonDatXe;
 import com.example.backendoan.Entity.DonDatXe;
-import com.example.backendoan.Repository.DonDatXeRepository;
-import com.example.backendoan.Repository.KhachHangRepository;
-import com.example.backendoan.Repository.NguoiDungRepository;
-import com.example.backendoan.Repository.XeRepository;
+import com.example.backendoan.Entity.Xe;
+import com.example.backendoan.Enums.TrangThaiXe;
+import com.example.backendoan.Repository.*;
 import lombok.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -31,6 +31,14 @@ public class DonDatXeService {
     private KhachHangRepository khachHangRepository;
     @Autowired
     private XeRepository xeRepository;
+    @Autowired
+    private MauXeRepository mauXeRepository;
+    public List<Xe> findAvailableXeByMauXeId(Integer mauXeId) {
+        if (mauXeId == null || mauXeId <= 0) {
+            throw new IllegalArgumentException("MauXeId phải là số dương");
+        }
+        return xeRepository.findByMauXe_MauXeIdAndTrangThai(mauXeId, 0);
+    }
     public List<ChiTietDonDatXeReponse> convertchitet(List<ChiTietDonDatXe> chiTietDonDatXes){
 
         return chiTietDonDatXes.stream().map(t-> ChiTietDonDatXeReponse.builder()
@@ -90,19 +98,29 @@ public class DonDatXeService {
         }).orElse(null);
     }
     public DonDatXeResponse addDonDatXe(DonDatXeRequest donDatXe) {
-
-
         List<ChiTietDonDatXe> chiTietDonDatXes = new ArrayList<>();
-
+        List<Integer> listXeId =new ArrayList<>();
         for (ChiTietRequest chiTietRequest : donDatXe.getChiTiet())  {
-            xeRepository.findById(chiTietRequest.getXeId())
-                    .orElseThrow(() -> new ResponseStatusException(
-                            HttpStatus.NOT_FOUND,
-                            "Không tìm thấy xe với id: " + chiTietRequest.getXeId()
-                    ));
+//            int s=chiTietRequest.getMauXeId();
+            List<Xe> availableXeList = findAvailableXeByMauXeId(chiTietRequest.getMauXeId());
+            if (availableXeList.isEmpty()) {
+                for(Integer xeid : listXeId){
+                    Xe xe = xeRepository.findById(xeid).get();
+                    xe.setTrangThai(TrangThaiXe.CHUA_THUE.getValue());
+                    xeRepository.save(xe);
+                }
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Hết xe đặt cho mẫu xe: " + mauXeRepository.findById(chiTietRequest.getMauXeId()).get().getTenMau()
+                );
 
+            }
+            Xe xe =findAvailableXeByMauXeId(chiTietRequest.getMauXeId()).get(0);
+            listXeId.add(xe.getXeId());
+            xe.setTrangThai(TrangThaiXe.DA_THUE.getValue());
+            xeRepository.save(xe);
             ChiTietDonDatXe chiTiet = ChiTietDonDatXe.builder()
-                    .xeId(chiTietRequest.getXeId())
+                    .xeId(xe.getXeId())
                     .soNgayThue(chiTietRequest.getSoNgayThue())
                     .thanhTien(chiTietRequest.getThanhTien())
                     .build();
@@ -123,8 +141,6 @@ public class DonDatXeService {
             chiTiet.setDonDatXe(donDatXe1);
         }
         DonDatXe d = donDatXeRepository.save(donDatXe1);
-
-
         return new DonDatXeResponse(
                 d.getDonDatXeId(),
                 converTenkhachhang(d.getKhachHangId()),
@@ -184,5 +200,20 @@ public class DonDatXeService {
                 .diaDiemNhanXe(donDatXe.getDiaDiemNhanXe())
 //                .chiTiet(convertchitet(donDatXe.getChiTiet()))
                 .build()).collect(Collectors.toList());
+    }
+    public List<DonDatXeResponse> getDonDatXeByToken(){
+        var context= SecurityContextHolder.getContext();
+        String name=context.getAuthentication().getName();
+        Integer khachHangId = khachHangRepository.findByEmail(name).get().getKhachHangId();
+        List<DonDatXe> donDatXes = donDatXeRepository.findByKhachHangId(khachHangId);
+        return donDatXes.stream().map(donDatXe -> DonDatXeResponse.builder()
+                .donDatXeId(donDatXe.getDonDatXeId())
+                .khachHangName(converTenkhachhang(donDatXe.getKhachHangId()))
+                .nguoiDungName(convertTennguoidung(donDatXe.getNguoiDungId()))
+                .ngayBatDau(donDatXe.getNgayBatDau())
+                .ngayKetThuc(donDatXe.getNgayKetThuc())
+                .tongTien(donDatXe.getTongTien())
+                .trangThai(donDatXe.getTrangThai())
+                .diaDiemNhanXe(donDatXe.getDiaDiemNhanXe()).build()).collect(Collectors.toList());
     }
 }
