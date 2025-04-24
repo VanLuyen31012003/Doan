@@ -8,4 +8,6 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface XeRepository extends JpaRepository<Xe, Integer> {
-    List<Xe> findByMauXe_MauXeIdAndTrangThai(Integer mauXeId, Integer trangThai);}
+    List<Xe> findByMauXe_MauXeIdAndTrangThai(Integer mauXeId, Integer trangThai);
+    Integer countByMauXe_MauXeIdAndTrangThai(Integer mauXeId, Integer trangThai);
+}

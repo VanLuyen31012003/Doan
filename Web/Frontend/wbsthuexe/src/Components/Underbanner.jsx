@@ -38,7 +38,7 @@ function Underbanner(props) {
                         tabs.map((item, index) => (
                             <div
                                 key={index}
-                                className={`${activeTab === item.id ?"bg-[#f9f9f9] text-[#DD5C36] duration-300  ":"bg-[#555555] text-white  " }  w-full  
+                                className={`${activeTab === item.id ?"bg-[#f9f9f9] text-[#DD5C36] duration-600 py-6  ":"bg-[#555555] text-white py-5 " }  w-full  
                                 font-medium h-full py-5  justify-center items-center flex rounded-t-lg flex-1`}
                                 onClick={() => { setActiveTab(item.id) }}
                             >{item.nameTabs}</div>

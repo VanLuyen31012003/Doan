@@ -25,13 +25,16 @@ import javax.crypto.spec.SecretKeySpec;
 public class SecurityConfig {
     @Value("${jwt.secret}")
     protected  String SIGNER_KEY ;
-    private final String [] Public_EnpointPost={"/auth/login","/auth/introspect","/auth/loginbykhachhang","/nguoidung/addnguoidung"};
+    private final String [] Public_EnpointPost={"/auth/login","/auth/introspect","/auth/loginbykhachhang","/nguoidung/addnguoidung"
+            ,"/mauxe/images/**"};
+    private final String [] Public_EnpointGet={"/mauxe/images/**","/nguoidung/getallnguoidung",};
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(requests ->
                 requests.requestMatchers(HttpMethod.POST,Public_EnpointPost).permitAll()
-//                        .requestMatchers(HttpMethod.GET,"/nguoidung/getallnguoidung").permitAll()
+                        .requestMatchers(HttpMethod.GET,Public_EnpointGet).permitAll()
+//                        .requestMatchers(HttpMethod.GET,"").permitAll()
 //                        .requestMatchers(HttpMethod.GET,"/nguoidung/getallnguoidung").
 //                        hasAuthority("ROLE_ADMIN")
 //                hasAnyRole(Role.ADMIN.name())

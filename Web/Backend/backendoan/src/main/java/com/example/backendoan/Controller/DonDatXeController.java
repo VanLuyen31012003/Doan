@@ -22,13 +22,19 @@ public class DonDatXeController {
 
     //lấy tất cả đơn đặt xe
     @GetMapping("/getalldon")
-    public List<DonDatXeResponse> getAllDonDatXe() {
-        return donDatXeService.getallDOnDatXe();
+    public ApiResponse<List<DonDatXeResponse>> getAllDonDatXe() {
+        return ApiResponse.<List<DonDatXeResponse>>builder()
+                        .message("Lấy danh sách đơn đặt xe thành công")
+                        .data(donDatXeService.getallDOnDatXe())
+                        .build();
     }
     // lấy đơn đặt xe theo id
     @GetMapping("/getdon/{id}")
-    public DonDatXeResponse getDonDatXeById(@PathVariable int  id) {
-        return donDatXeService.getDonDatXeById(id);
+    public ApiResponse<DonDatXeResponse> getDonDatXeById(@PathVariable int  id) {
+        return ApiResponse.<DonDatXeResponse>builder()
+                        .message("Lấy đơn đặt xe thành công")
+                        .data(donDatXeService.getDonDatXeById(id))
+                        .build();
     }
     //  add đơn đặt xe
     @PostMapping("/adddon")
