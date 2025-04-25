@@ -44,3 +44,13 @@
     background-position: right;
   }
 }
+/* Ẩn thanh scroll bar nhưng vẫn giữ được cuộn ngang */
+.scroll-container {
+  overflow-x: auto;
+  -ms-overflow-style: none; /* Ẩn scrollbar trên IE và Edge */
+  scrollbar-width: none; /* Ẩn scrollbar trên Firefox */
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none; /* Ẩn thanh scrollbar trên Chrome, Safari */
+}

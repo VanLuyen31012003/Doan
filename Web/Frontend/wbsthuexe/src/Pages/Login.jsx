@@ -1,24 +1,49 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from "react-router-dom";
+import ApiKhachHang from '../api/ApiKhachHang';
+import { setToken } from '../lib/authenticate';
+import { useContext } from 'react';
+import{MotoContext} from '../Context/MotoContext';
 
 
 function Login(props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
     const [rememberMe, setRememberMe] = useState(false);
-      const navigate = useNavigate();
+  const navigate = useNavigate();
+  const { setIsLogin } = useContext(MotoContext);
 
   
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Ngăn chặn hành vi mặc định của form (nếu có)
     // Logic xử lý đăng nhập
-    console.log('Form submitted', { 
-      email,
-      password,
-      rememberMe
-    });
-    
+    const user = {
+      username: email,
+      password: password,
+    }
+    // console.log('Form submitted', user);
+    try {
+      const response = await ApiKhachHang.login(user);
+      const authenticate= response.data.data.authenticated;
+      if (authenticate === true) {
+        // Lưu token vào localStorage nếu cần
+        setToken(response.data.data.token);
+        setIsLogin(true);
+        alert('Đăng nhập thành công!');
+        navigate('/'); // Chuyển hướng đến trang chính sau khi đăng nhập thành công
+      }
+      else {
+        console.log('Đăng nhập thất bại:', response.data.data);
+        alert('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin đăng nhập của bạn.');
+        // Xử lý thông báo lỗi nếu cần
+      } 
+      
+    } catch (error) {
+      console.error('Error during login:', error);
+      // Xử lý lỗi nếu cần
+    }
+   
   };
 
   return (
@@ -35,7 +60,7 @@ function Login(props) {
           Đăng Nhập
         </h2>
 
-        <form onSubmit={handleSubmit}>
+        <form >
           <div className="mb-4">
             <label className="block text-[#777777] font-bold mb-2">
               Email <span className="text-red-500">*</span>
@@ -83,16 +108,16 @@ function Login(props) {
           </div>
           
           <button 
-            type="submit" 
+            type="submit"
             className="w-full bg-[#dd5c36] text-white py-3 rounded-lg hover:bg-red-600 transition duration-300 font-bold"
-          onClick={()=>{navigate('/')}}
-                  >
+            onClick={(e) => { handleSubmit(e) }}>
+                  
             Đăng Nhập
           </button>
         </form>
 
         <div className="text-center mt-6 text-[#777777]">
-          Chưa có tài khoản? <Link to="#" className="text-[#DD5C36] hover:underline">Đăng ký ngay</Link>
+          Chưa có tài khoản? <Link to="/register" className="text-[#DD5C36] hover:underline">Đăng ký ngay</Link>
         </div>
       </div>
     </>

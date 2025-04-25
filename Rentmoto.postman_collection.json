@@ -103,8 +103,30 @@
 				{
 					"name": "getinfo",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJmcm9tIGFkbWluMUBnbWFpbC5jb20iLCJzdWIiOiJhZG1pbjFAZ21haWwuY29tIiwiZXhwIjoyMTA1NDgyMTcyLCJpYXQiOjE3NDU0ODIxNzIsInNjb3BlIjoiIn0.5P7v5lBvRKW_P-0_xocPLXCvSdDyAoKs0fUQMg3OvRFjzL1gQehyFCWJKJk1sVlWAu7XUK89GIO98D4cBVGZSQ",
+									"type": "string"
+								}
+							]
+						},
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/nguoidung/getmyinfo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"nguoidung",
+								"getmyinfo"
+							]
+						}
 					},
 					"response": []
 				}
@@ -208,16 +230,6 @@
 				{
 					"name": "getalldondat",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJmcm9tbHV5ZW4iLCJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImV4cCI6MTc0NDg4NTIyNSwiaWF0IjoxNzQ0ODgxNjI1LCJzY29wZSI6IkFETUlOIn0.Nkwa4LJde856Ta5Q1j6rmZTubSyKf2ckzxTzkw1x_njNbNTcGpXql7NnNkIQ0937S7mU8ytX3sATWbJB_xijNg",
-									"type": "string"
-								}
-							]
-						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -238,16 +250,6 @@
 				{
 					"name": "getdonbyid",
 					"request": {
-						"auth": {
-							"type": "bearer",
-							"bearer": [
-								{
-									"key": "token",
-									"value": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJmcm9tbHV5ZW4iLCJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImV4cCI6MTc0NDk2MTcyMiwiaWF0IjoxNzQ0OTU4MTIyLCJzY29wZSI6IkFETUlOIn0.1KbtiTHY4CU1NgpvV3WqxDy0KOfr8idFaq1hGR3Xfewcmgdr3mXdG2rw19XLqmsN0z6OKe4OCvhiKif9vJCBow",
-									"type": "string"
-								}
-							]
-						},
 						"method": "GET",
 						"header": [],
 						"url": {
@@ -274,7 +276,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJmcm9tbHV5ZW4iLCJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImV4cCI6MTc0NDk2OTE4MiwiaWF0IjoxNzQ0OTY1NTgyLCJzY29wZSI6IkFETUlOIn0.UxmP3oSI6rdWWeVBdZalrtu_RD31M8uTZDp7QwDR5FodC-WQrtiEb3K3zigpAZqztgy48hWBHf6lkFR0eqLPog",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJmcm9tIGFkbWluMUBnbWFpbC5jb20iLCJzdWIiOiJhZG1pbjFAZ21haWwuY29tIiwiZXhwIjoyMTA1MzgyMDU1LCJpYXQiOjE3NDUzODIwNTUsInNjb3BlIjoiIn0.RqTALNGx5GeBifezj_gXFUQ4gOgsJl2ejWCvNzX59ns65zcyQF_mOYajfcopytq2aZdVsya1kgYEZzWv2qsKGw",
 									"type": "string"
 								}
 							]
@@ -283,7 +285,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"khachHangId\": 1,\r\n  \"nguoiDungId\": 2,\r\n  \"ngayBatDau\": \"2023-11-01T08:00:00\",\r\n  \"ngayKetThuc\": \"2023-11-05T18:00:00\",\r\n  \"tongTien\": 5000000,\r\n  \"trangThai\": 0,\r\n  \"diaDiemNhanXe\": \"123 Main Street, City Center\",\r\n  \"chiTiet\": [\r\n    {\r\n      \"xeId\": 1,\r\n      \"soNgayThue\": 5,\r\n      \"thanhTien\": 2500000\r\n    },\r\n    {\r\n      \"xeId\": 1,\r\n      \"soNgayThue\": 5,\r\n      \"thanhTien\": 2500000\r\n    }\r\n  ]\r\n}",
+							"raw": "{\r\n  \"khachHangId\": 1,\r\n  \"nguoiDungId\": 2,\r\n  \"ngayBatDau\": \"2023-11-01T08:00:00\",\r\n  \"ngayKetThuc\": \"2023-11-05T18:00:00\",\r\n  \"tongTien\": 5000000,\r\n  \"trangThai\": 0,\r\n  \"diaDiemNhanXe\": \"123 Main Street, City Center\",\r\n  \"chiTiet\": [\r\n    {\r\n      \"mauXeId\": 2,\r\n      \"soNgayThue\": 5,\r\n      \"thanhTien\": 2500000\r\n    },\r\n    {\r\n      \"mauXeId\": 2,\r\n      \"soNgayThue\": 5,\r\n      \"thanhTien\": 2500000\r\n    }\r\n  ]\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -308,8 +310,30 @@
 				{
 					"name": "updatedon",
 					"request": {
-						"method": "GET",
-						"header": []
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"khachHangId\": 1,\r\n  \"nguoiDungId\": 2,\r\n  \"ngayBatDau\": \"2025-04-25T00:00:00\",\r\n  \"ngayKetThuc\": \"2025-04-30T23:59:59\",\r\n  \"tongTien\": 1500000.0,\r\n  \"trangThai\": 0,\r\n  \"diaDiemNhanXe\": \"123 Đường Láng, Hà Nội\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/dondatxe/updatedon/1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"dondatxe",
+								"updatedon",
+								"1"
+							]
+						}
 					},
 					"response": []
 				},
@@ -352,7 +376,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJmcm9tbHV5ZW4iLCJzdWIiOiJhZG1pbkBleGFtcGxlLmNvbSIsImV4cCI6MTc0NDk2OTE4MiwiaWF0IjoxNzQ0OTY1NTgyLCJzY29wZSI6IkFETUlOIn0.UxmP3oSI6rdWWeVBdZalrtu_RD31M8uTZDp7QwDR5FodC-WQrtiEb3K3zigpAZqztgy48hWBHf6lkFR0eqLPog",
+									"value": "eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJmcm9tIGFkbWluMUBnbWFpbC5jb20iLCJzdWIiOiJhZG1pbjFAZ21haWwuY29tIiwiZXhwIjoyMTA1MzgyMDU1LCJpYXQiOjE3NDUzODIwNTUsInNjb3BlIjoiIn0.RqTALNGx5GeBifezj_gXFUQ4gOgsJl2ejWCvNzX59ns65zcyQF_mOYajfcopytq2aZdVsya1kgYEZzWv2qsKGw",
 									"type": "string"
 								}
 							]
@@ -379,7 +403,19 @@
 					"name": "getdondatxebytoken",
 					"request": {
 						"method": "GET",
-						"header": []
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/dondatxe/getdonhangbytoken",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"dondatxe",
+								"getdonhangbytoken"
+							]
+						}
 					},
 					"response": []
 				},
@@ -520,12 +556,340 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "addnewmauxe",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tenMau",
+									"value": "wave alpha",
+									"type": "text"
+								},
+								{
+									"key": "giaThueNgay",
+									"value": "1200.00",
+									"type": "text"
+								},
+								{
+									"key": "moTa",
+									"value": "Xe số cao cấp ",
+									"type": "text"
+								},
+								{
+									"key": "hangxeId",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "loaiXeId",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "anhDefault",
+									"type": "file",
+									"src": "/E:/cái gì đó.jfif"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/mauxe/addnewmauxe",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"mauxe",
+								"addnewmauxe"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "updatemauxe",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "tenMau",
+									"value": "Xe sh",
+									"type": "text"
+								},
+								{
+									"key": "giaThueNgay",
+									"value": "100000",
+									"type": "text"
+								},
+								{
+									"key": "moTa",
+									"value": "Động cơ mạnh mẽ, đánh bay mọi khung đường ",
+									"type": "text"
+								},
+								{
+									"key": "anhDefault",
+									"type": "file",
+									"src": "/E:/sh này.jpeg"
+								},
+								{
+									"key": "loaiXeId",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "hangxeId",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:8080/mauxe/updatemauxe/17",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"mauxe",
+								"updatemauxe",
+								"17"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "getmauxetheoloaixe",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/mauxe/getmauxetheoloaixe/4?page=0&size=1&sort=mauXeId,asc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"mauxe",
+								"getmauxetheoloaixe",
+								"4"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "1"
+								},
+								{
+									"key": "sort",
+									"value": "mauXeId,asc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "searchbykeyandsort",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/mauxe/search?tenMau=a&hangXeId=1&loaiXeId=1",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"mauxe",
+								"search"
+							],
+							"query": [
+								{
+									"key": "tenMau",
+									"value": "a"
+								},
+								{
+									"key": "hangXeId",
+									"value": "1"
+								},
+								{
+									"key": "loaiXeId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
 		{
 			"name": "Khách hàng",
-			"item": []
+			"item": [
+				{
+					"name": "getinfbytoken",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/khachhang/getmyinfo",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"khachhang",
+								"getmyinfo"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "register",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"hoTen\": \"Nguyen Van Ab\",\r\n  \"email\": \"nguyenvana@example.com\",\r\n  \"soDienThoai\": \"0123456789\",\r\n  \"matKhau\": \"password123\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/khachhang/registerkhachhang",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"khachhang",
+								"registerkhachhang"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "image",
+			"item": [
+				{
+					"name": "getanhxe",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/mauxe/images/anh1.jpeg",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"mauxe",
+								"images",
+								"anh1.jpeg"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Danhgia",
+			"item": [
+				{
+					"name": "getalldanhgiabymauxeid",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8080/danhgia/getalldanhgiabyid/1?page=0&size=10&sort=ngayDanhGia,desc",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"danhgia",
+								"getalldanhgiabyid",
+								"1"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sort",
+									"value": "ngayDanhGia,desc"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "createdanhgia",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    // \"khachHangId\": 1,\r\n    \"mauXeId\": 10,\r\n    \"soSao\": 5,\r\n    \"binhLuan\": \"Xe rất đẹp, dịch vụ tốt!\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/danhgia/create",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"danhgia",
+								"create"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"auth": {

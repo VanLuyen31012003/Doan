@@ -1,5 +1,6 @@
 package com.example.backendoan.Controller;
 
+import com.example.backendoan.Dto.Request.DanhGiaRequest;
 import com.example.backendoan.Dto.Response.ApiResponse;
 import com.example.backendoan.Dto.Response.DanhGiaResponse;
 import com.example.backendoan.Dto.Response.MauXeResponse;
@@ -46,6 +47,19 @@ public class DanhGiaController {
                     .data(danhGiaPage)
                     .build();
         } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+    @PostMapping("/create")
+    public ApiResponse<DanhGiaResponse> createDanhGia( @RequestBody DanhGiaRequest request) {
+        try {
+            DanhGiaResponse danhGiaResponse = danhGiaService.createDanhGia(request);
+            return ApiResponse.<DanhGiaResponse>builder()
+                    .success(true)
+                    .message("Tạo đánh giá thành công")
+                    .data(danhGiaResponse)
+                    .build();
+        } catch (IllegalArgumentException | IllegalStateException e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }

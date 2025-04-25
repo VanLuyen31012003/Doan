@@ -94,6 +94,8 @@ const ContactPage = () => {
               style={{ border: 0 }}
               allowFullScreen=""
               loading="lazy"
+                title="Bản đồ vị trí cửa hàng Himoto Việt Nam"
+
               referrerPolicy="no-referrer-when-downgrade"
             ></iframe>
           </div>

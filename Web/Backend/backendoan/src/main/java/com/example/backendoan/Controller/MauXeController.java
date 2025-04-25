@@ -21,6 +21,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 @RestController
 @RequestMapping("/mauxe")
@@ -150,6 +151,16 @@ public class MauXeController {
                         ", loại xe ID: " + loaiXeId +
                         ", hãng xe ID: " + hangXeId)
                 .data(mauXePage)
+                .build();
+    }
+    //lay10 xe nhieuf luowjt dat nhat
+    @GetMapping("/gettop10mauxe")
+    public ApiResponse<List<MauXeResponse>> getTop10MauXeBySoLuotDat() {
+        List<MauXeResponse> topMauXeList = mauXeService.getTop10MauXeBySoLuotDat();
+        return ApiResponse.<List<MauXeResponse>>builder()
+                .success(true)
+                .message("Lấy top 10 mẫu xe có số lượt đặt nhiều nhất thành công")
+                .data(topMauXeList)
                 .build();
     }
 }

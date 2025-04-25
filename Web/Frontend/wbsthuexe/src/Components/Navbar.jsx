@@ -4,7 +4,10 @@ import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { IoPersonCircleOutline } from "react-icons/io5";
-
+import { getToken, removeToken } from "../lib/authenticate";
+import { IoMdLogOut } from "react-icons/io";
+import { useContext } from "react";
+import { MotoContext } from "../Context/MotoContext";
 
 const tabs = [
   {
@@ -41,6 +44,8 @@ const tabs = [
 function Navbar(props) {
   const { pathname } = useLocation();
   const [active, setActive] = useState(1);
+  const {isLogin, setIsLogin} = useContext(MotoContext);
+  
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -50,6 +55,16 @@ function Navbar(props) {
     }
     
   }, [pathname]);
+  useEffect(() => { 
+    if (getToken())
+    {
+      setIsLogin(true);
+      
+    }
+    
+      
+
+  },[])
 
   
   return (
@@ -63,8 +78,14 @@ function Navbar(props) {
       <div className="md:ml-[25%]  flex flex-col gap-3">
         <div className="flex gap-1 justify-end  items-center ">
           <h1 className="flex gap-1 text-sm   font-semibold ">Liên Hệ <p className="text-[#dd5c36] font-bold">0886184116</p> </h1>
-          <Link to='/login'><IoPersonCircleOutline size={28} color="#777777 " className="ml-3 hover:scale-150 duration-300" />
-</Link>
+          {
+            isLogin===true ?
+              <IoMdLogOut size={28} color="#777777 " className="ml-3 hover:scale-150 duration-300 "
+              
+                onClick={() => { setIsLogin(false);removeToken(); alert("Bạn đã đăng xuất") }}
+              />
+               : <Link to='/login'><IoPersonCircleOutline size={28} color="#777777 " className="ml-3 hover:scale-150 duration-300" /></Link>
+          }
            <CiFacebook size={28} color="#777777 " className="ml-1 hover:scale-150 duration-300" />        </div>
         <ul className="hidden md:flex gap-5 text-[16px] ">
           {

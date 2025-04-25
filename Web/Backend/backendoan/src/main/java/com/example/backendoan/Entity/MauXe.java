@@ -38,4 +38,5 @@ public class MauXe {
     @Column(name = "mo_ta")
     private String moTa;
     private String anhdefault;
+    private Integer soluotdat;
 }

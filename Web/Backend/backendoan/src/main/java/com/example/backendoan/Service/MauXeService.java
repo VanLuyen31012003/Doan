@@ -13,6 +13,7 @@ import com.example.backendoan.Repository.MauXeRepository;
 import com.example.backendoan.Repository.XeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -275,5 +277,31 @@ public class MauXeService {
                     .soLuongxeconlai(xeRepository.countByMauXe_MauXeIdAndTrangThai(mauXe.getMauXeId(), TrangThaiXe.CHUA_THUE.getValue()))
                     .build();
         });
+    }
+    //lay top 10 mau xe co luot dat nhieu
+    public List<MauXeResponse> getTop10MauXeBySoLuotDat() {
+        // Tạo Pageable để lấy top 10
+        Pageable pageable = PageRequest.of(0, 10); // Trang 0, kích thước 10
+
+        // Lấy top 10 mẫu xe theo soluotdat
+        List<MauXe> topMauXeList = mauXeRepository.findTop10ByOrderBySoluotdatDesc(pageable);
+
+
+        // Chuyển đổi sang MauXeResponse
+        return topMauXeList.stream().map(mauXe -> MauXeResponse.builder()
+                .mauXeId(mauXe.getMauXeId())
+                .tenMau(mauXe.getTenMau())
+                .giaThueNgay(mauXe.getGiaThueNgay())
+                .tenHangXe(hangXeRepository.findById(mauXe.getHangXeId()).get().getTenHang())
+                .moTa(mauXe.getMoTa())
+                .loaiXeReponse(loaiXeRepository.findById(mauXe.getLoaiXeId()).map(loaiXe -> LoaiXeReponse
+                        .builder()
+                        .tenLoaiXe(loaiXe.getTenLoai())
+                        .loaixeXeid(loaiXe.getLoaiXeId())
+                        .build()).orElseThrow())
+                .anhDefault(mauXe.getAnhdefault())
+                .soluotdat(mauXe.getSoluotdat())
+                .build()
+        ).toList();
     }
 }

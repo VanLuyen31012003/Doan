@@ -16,8 +16,12 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.crypto.spec.SecretKeySpec;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -26,12 +30,19 @@ public class SecurityConfig {
     @Value("${jwt.secret}")
     protected  String SIGNER_KEY ;
     private final String [] Public_EnpointPost={"/auth/login","/auth/introspect","/auth/loginbykhachhang","/nguoidung/addnguoidung"
-            ,"/mauxe/images/**"};
-    private final String [] Public_EnpointGet={"/mauxe/images/**","/nguoidung/getallnguoidung",};
+            ,"/mauxe/images/**","/khachhang/registerkhachhang"
+    };
+    private final String [] Public_EnpointGet={"/mauxe/images/**","/nguoidung/getallnguoidung",
+            "/mauxe/getallmauxe","/mauxe/gettop10mauxe","/mauxe/getmauxe/**","/mauxe/search",
+            "/mauxe/getmauxetheoloaixe/**","/danhgia/getalldanhgiabyid/**"
+    };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.authorizeHttpRequests(requests ->
+        httpSecurity
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Kích hoạt CORS
+                .csrf(csrf -> csrf.disable()) // Tắt
+                .authorizeHttpRequests(requests ->
                 requests.requestMatchers(HttpMethod.POST,Public_EnpointPost).permitAll()
                         .requestMatchers(HttpMethod.GET,Public_EnpointGet).permitAll()
 //                        .requestMatchers(HttpMethod.GET,"").permitAll()
@@ -61,5 +72,18 @@ public class SecurityConfig {
                         .macAlgorithm(MacAlgorithm.HS512)
                         .build();
     };
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000")); // Cho phép origin của React
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration); // Áp dụng cho tất cả endpoint
+        return source;
+    }
+
 }
 

@@ -19,4 +19,5 @@ public class MauXeResponse {
     private LoaiXeReponse loaiXeReponse;
     private String tenHangXe;
     private Integer soLuongxeconlai;
+    private Integer soluotdat;
 }

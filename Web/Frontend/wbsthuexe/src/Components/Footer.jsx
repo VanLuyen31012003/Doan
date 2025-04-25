@@ -1,6 +1,7 @@
 import React from 'react';
 import { Phone, Mail, MapPin, Facebook } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom'; // Thêm Link từ react-router-dom
 
 const Footer = () => {
   return (
@@ -23,14 +24,14 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4">LIÊN KẾT</h3>
             <ul>
               <li className="mb-2">
-                <a href="#" className="text-sm flex items-center">
+                <Link to="/dat-xe" className="text-sm flex items-center">
                   <span className="mr-2">›</span> Đặt Xe
-                </a>
+                </Link>
               </li>
               <li className="mb-2">
-                <a href="#" className="text-sm flex items-center">
+                <Link to="/bang-gia" className="text-sm flex items-center">
                   <span className="mr-2">›</span> Bảng Giá
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -81,33 +82,35 @@ const Footer = () => {
             Copyright © 2025 Website thuộc bản quyền của HIMOTO Việt Nam
           </p>
           <div className="flex space-x-4">
-            <a href="#" className="text-sm hover:underline">Giới thiệu HIMOTO</a>
-            <a href="#" className="text-sm hover:underline">Liên hệ</a>
-            <a href="#" className="text-sm hover:underline">Chính sách riêng tư</a>
-            <a href="#" className="text-sm hover:underline">Chính sách bảo mật</a>
+            <Link to="/gioi-thieu" className="text-sm hover:underline">Giới thiệu HIMOTO</Link>
+            <Link to="/lien-he" className="text-sm hover:underline">Liên hệ</Link>
+            <Link to="/chinh-sach-rieng-tu" className="text-sm hover:underline">Chính sách riêng tư</Link>
+            <Link to="/bao-mat" className="text-sm hover:underline">Chính sách bảo mật</Link>
           </div>
         </div>
       </div>
 
       {/* Floating buttons */}
       <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
-      <motion.a 
-  href="#" 
-  className="bg-blue-500 text-white p-3 rounded-full"
-  animate={{ rotate: [0, 360, 0] }} // Xoay 360 độ rồi trở về 0 độ
-  transition={{ repeat: Infinity, repeatDelay: 3, duration: 1 }}
->
-  <Facebook className="h-6 w-6" />
-</motion.a>
+        <motion.a 
+          href="https://facebook.com/himoto.vn" 
+          className="bg-blue-500 text-white p-3 rounded-full"
+          animate={{ rotate: [0, 360, 0] }}
+          transition={{ repeat: Infinity, repeatDelay: 3, duration: 1 }}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Facebook className="h-6 w-6" />
+        </motion.a>
 
-<motion.a 
-  href="tel:0886184116" 
-  className="bg-green-500 text-white p-3 hover:scale-150 rounded-full"
-  animate={{ rotate: [360, 0, 0] }}
-  transition={{ repeat: Infinity, repeatDelay: 3, duration: 1 }}
->
-  <Phone className="h-6 w-6" />
-</motion.a>
+        <motion.a 
+          href="tel:0886184116" 
+          className="bg-green-500 text-white p-3 hover:scale-150 rounded-full"
+          animate={{ rotate: [360, 0, 0] }}
+          transition={{ repeat: Infinity, repeatDelay: 3, duration: 1 }}
+        >
+          <Phone className="h-6 w-6" />
+        </motion.a>
       </div>
     </footer>
   );
