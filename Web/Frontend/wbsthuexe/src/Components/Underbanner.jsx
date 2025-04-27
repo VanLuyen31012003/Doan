@@ -31,7 +31,7 @@ function Underbanner(props) {
       const [activeTab, setActiveTab] = useState(1);
 
     return (
-        <div className=' md:relative  flex flex-col items-center    '>
+        <div className=' md:relative  flex flex-col items-center  mb-[40%]   '>
             <div className=' md:absolute md:top-[-10vh]  w-full md:w-[75%]   ' >
                 <div className='  items-center rounded-t-md  w-full gap-2 md:gap-0 md:max-w-[100%] lg:max-w-[75%] xl:max-w-[60%] h-[15%] flex flex-col md:flex-row '>
                     {

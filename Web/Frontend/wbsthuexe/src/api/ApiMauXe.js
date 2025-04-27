@@ -6,15 +6,19 @@ const ApiMauXe = {
         return axiosclient.get(url);
     },
     getMauXeById: (id) => {
-        const url = `/mauxe/${id}`;
+        const url = `/mauxe/getmauxe/${id}`;
         return axiosclient.get(url);
     },
     getMauXeByIdXe: (id) => {
         const url = `/mauxe/mauxetheoxe/${id}`;
         return axiosclient.get(url);
     },
-    gettop10MauXe: () => {
-        const url = '/mauxe/gettop10mauxe';
+    gettop10MauXe: (mauxeid) => {
+         
+            let url = `/mauxe/gettop10mauxe`;
+        if(mauxeid)
+            url = `/mauxe/gettop10mauxe?loaiXeId=${mauxeid}`;
+       
         return axiosclient.get(url);
     }
     

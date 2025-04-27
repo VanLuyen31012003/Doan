@@ -24,5 +24,6 @@ public interface MauXeRepository extends JpaRepository<MauXe, Integer> {
             @Param("loaiXeId") Integer loaiXeId,
             @Param("hangXeId") Integer hangXeId,
             Pageable pageable);
-    List<MauXe> findTop10ByOrderBySoluotdatDesc(Pageable pageable);
+    List<MauXe> findTop6ByOrderBySoluotdatDesc(Pageable pageable);
+    List<MauXe> findTop6ByLoaiXeIdOrderBySoluotdatDesc(Integer loaiXeId, Pageable pageable);
 }

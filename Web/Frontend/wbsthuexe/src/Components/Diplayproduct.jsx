@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 
 function Diplayproduct(props) {
-    const [activeimg, setActiveimg] = useState("https://image.plo.vn/w1000/Uploaded/2025/lcemdurlq/2022_08_24/bentley-mulliner-batur-5149.jpg.webp");
+  const { data } = props;
+    const [activeimg, setActiveimg] = useState(data.anhDefault);
 
   const img = [
     {
@@ -31,15 +32,16 @@ function Diplayproduct(props) {
             className="w-[100%] max-h-[300px] p-5 rounded-xl"
           />
           <div className="m-auto w-[50%] gap-2 flex  ">
-            {img.map((item, index) => (
+            {console.log("đây là ảnh xe list",data.anhXeList)}
+            {data.anhXeList?.map((item, index) => (
               <>
                 <div
                   className="w-10 h-10 bg-white hover:scale-110 rounded-md duration-300"
                   style={{
-                    backgroundImage: `url(${item.img})`,
+                    backgroundImage: `url(${item})`,
                     backgroundSize: "cover",
                         }}
-                        onClick={()=>{setActiveimg(item.img)}}
+                        onClick={()=>{setActiveimg(item)}}
                 ></div>{" "}
               </>
             ))}

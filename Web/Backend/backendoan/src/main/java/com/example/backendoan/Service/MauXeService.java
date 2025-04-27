@@ -3,24 +3,24 @@ package com.example.backendoan.Service;
 import com.example.backendoan.Dto.Request.MauXeRequest;
 import com.example.backendoan.Dto.Response.LoaiXeReponse;
 import com.example.backendoan.Dto.Response.MauXeResponse;
+import com.example.backendoan.Entity.AnhXe;
 import com.example.backendoan.Entity.HangXe;
 import com.example.backendoan.Entity.LoaiXe;
 import com.example.backendoan.Entity.MauXe;
 import com.example.backendoan.Enums.TrangThaiXe;
-import com.example.backendoan.Repository.HangXeRepository;
-import com.example.backendoan.Repository.LoaiXeRepository;
-import com.example.backendoan.Repository.MauXeRepository;
-import com.example.backendoan.Repository.XeRepository;
+import com.example.backendoan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,6 +38,8 @@ public class MauXeService {
 
     @Autowired
     private XeRepository xeRepository;
+    @Autowired
+    private AnhXeRepository anhXeRepository;
 
     public Page<MauXeResponse> getAllMauXe(Pageable pageable) {
         return mauXeRepository.findAll(pageable).map(mauXe -> {
@@ -83,6 +85,11 @@ public class MauXeService {
                         .tenLoaiXe(loaiXe.getTenLoai())
                         .build())
                 .orElse(null);
+        // Lấy danh sách ảnh xe
+        List<String> anhXeList = anhXeRepository.findByMauXeId(mauXeId)
+                .stream()
+                .map(anhXe -> anhXe.getDuongDan())
+                .toList();
 
         // Xây dựng đối tượng MauXeResponse
         return MauXeResponse.builder()
@@ -93,6 +100,7 @@ public class MauXeService {
                 .moTa(mauXe.getMoTa())
                 .anhDefault(mauXe.getAnhdefault())
                 .loaiXeReponse(loaiXeResponse)
+                .anhXeList(anhXeList)
                 .soLuongxeconlai(xeRepository.countByMauXe_MauXeIdAndTrangThai(mauXe.getMauXeId(), TrangThaiXe.CHUA_THUE.getValue()))
                 .build();
     }
@@ -279,12 +287,19 @@ public class MauXeService {
         });
     }
     //lay top 10 mau xe co luot dat nhieu
-    public List<MauXeResponse> getTop10MauXeBySoLuotDat() {
+    public List<MauXeResponse> getTop10MauXeBySoLuotDat(Integer loaixeId) {
         // Tạo Pageable để lấy top 10
-        Pageable pageable = PageRequest.of(0, 10); // Trang 0, kích thước 10
+        Pageable pageable = PageRequest.of(0, 6); // Trang 0, kích thước 10
 
         // Lấy top 10 mẫu xe theo soluotdat
-        List<MauXe> topMauXeList = mauXeRepository.findTop10ByOrderBySoluotdatDesc(pageable);
+        List<MauXe> topMauXeList ;
+        if (loaixeId != null) {
+            // Nếu có loaiXeId, lấy top 10 theo loaiXeId
+            topMauXeList = mauXeRepository.findTop6ByLoaiXeIdOrderBySoluotdatDesc(loaixeId, pageable);
+        } else {
+            // Nếu không có loaiXeId, lấy top 10 tất cả
+            topMauXeList = mauXeRepository.findTop6ByOrderBySoluotdatDesc(pageable);
+        }
 
 
         // Chuyển đổi sang MauXeResponse
@@ -303,5 +318,40 @@ public class MauXeService {
                 .soluotdat(mauXe.getSoluotdat())
                 .build()
         ).toList();
+    }
+    // up load multifile
+    public List<AnhXe> uploadImages(Integer mauXeId, List<MultipartFile> files) throws IOException {
+        // Kiểm tra mauXeId có tồn tại không
+        MauXe mauXe = mauXeRepository.findById(mauXeId)
+                .orElseThrow(() -> new IllegalArgumentException("Mẫu xe với ID " + mauXeId + " không tồn tại"));
+        List<AnhXe> uploadedImages = new ArrayList<>();
+
+        // Xử lý từng file
+        if(files == null || files.isEmpty()) {
+            throw new IllegalArgumentException("Không có file nào được chọn để tải lên");
+        }
+        String uploadDir = "src/main/resources/static/images/";
+        Path uploadPath = Paths.get(uploadDir);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        for (MultipartFile file : files) {
+            String anhDefaultPath = null;
+            String originalFileName = file.getOriginalFilename();
+            String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
+
+            Path filePath = uploadPath.resolve(uniqueFileName);
+            Files.write(filePath, file.getBytes());
+            anhDefaultPath = "http://localhost:8080/mauxe/images/" + uniqueFileName;
+
+            AnhXe anhXe = AnhXe.builder()
+                    .mauXeId(mauXeId)
+                    .duongDan(anhDefaultPath)
+                    .build();
+            uploadedImages.add(anhXeRepository.save(anhXe));
+        }
+
+        return uploadedImages;
     }
 }

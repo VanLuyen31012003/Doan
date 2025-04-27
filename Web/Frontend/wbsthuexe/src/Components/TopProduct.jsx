@@ -1,12 +1,14 @@
-import React, { use, useEffect } from "react";
+import React, {  useEffect } from "react";
 import { TiTick } from "react-icons/ti";
 import { Link } from "react-router-dom";
 import ApiMauXe from "../api/ApiMauXe";
-function Featureditem(props) {
+function TopProduct(props) {
+  const { item } = props;
+  
   const [products, setProducts] = React.useState([]);
   const fetchProducts = async () => {
     try {
-      const response = await ApiMauXe.gettop10MauXe(); // Replace with your API endpoint
+      const response = await ApiMauXe.gettop10MauXe(item.id); // Replace with your API endpoint
       const data = await response.data.data; // Adjust based on your API response structure
       setProducts(data);
       console.log(data); // Log the fetched data to the console
@@ -20,21 +22,22 @@ function Featureditem(props) {
   return (
     <div className="  ">
       <div className=" w-full  mt-[10%] bg-[#f9f9f9] md:mt-[0%] ">
-        <div className="  py-8 px-2 text-black gap-4  m-auto flex flex-col items-center justify-center  w-full md:w-[75%]">
-          <h1 className="text-[#DD5C36] text-4xl text-center font-bold">
-            Top các xe được đặt nhiều nhất{" "}
-          </h1>
-          <div className="w-[90%]  text-center">
-            <p>
-              Xe sau khi kết thúc hợp đồng với khách sẽ được kiểm tra, bảo
-              dưỡng, thay thế các bộ phận hỏng hóc và phải đạt chuẩn an toàn xe
-              trước khi giao cho khách hàng mới.
+              <div className="  py-8 px-2 text-black gap-4  m-auto flex flex-col items-center justify-center  w-full md:w-[75%]">
+        <div className="w-full flex flex-col items-start justify-between">
+          <h1 className="text-[#DD5C36] text-4xl text-left font-bold">
+            Top các mẫu {item.name} hot nhất
+                      </h1>
+                      <div className="w-[90%]  text-left">
+            <p className="mt-5">
+             {item.des}
             </p>
           </div>
+                      </div>
+          
           <div className="mt-[30px] flex md:flex-row flex-col w-full   gap-4 overflow-x-auto scroll-container ">
             {products?.map((item, index) => (
               <Link
-                to="/chitietsp"
+  to={`/chitietsp/${item.mauXeId}`}
                 className="hover:scale-105  duration-300 min-w-[250px]  md:min-w-[300px] snap-start flex flex-col gap-3  text-[#555555] shadow-lg rounded py-4"
               >
                 <div
@@ -80,4 +83,4 @@ function Featureditem(props) {
   );
 }
 
-export default Featureditem;
+export default TopProduct;

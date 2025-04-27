@@ -6,6 +6,7 @@ import com.example.backendoan.Dto.Response.ChiTietDonDatXeReponse;
 import com.example.backendoan.Dto.Response.DonDatXeResponse;
 import com.example.backendoan.Entity.ChiTietDonDatXe;
 import com.example.backendoan.Entity.DonDatXe;
+import com.example.backendoan.Entity.MauXe;
 import com.example.backendoan.Entity.Xe;
 import com.example.backendoan.Enums.TrangThaiXe;
 import com.example.backendoan.Repository.*;
@@ -100,6 +101,8 @@ public class DonDatXeService {
     public DonDatXeResponse addDonDatXe(DonDatXeRequest donDatXe) {
         List<ChiTietDonDatXe> chiTietDonDatXes = new ArrayList<>();
         List<Integer> listXeId =new ArrayList<>();
+        List<Integer> listMauxeId =new ArrayList<>();
+
         for (ChiTietRequest chiTietRequest : donDatXe.getChiTiet())  {
 //            int s=chiTietRequest.getMauXeId();
             List<Xe> availableXeList = findAvailableXeByMauXeId(chiTietRequest.getMauXeId());
@@ -109,12 +112,25 @@ public class DonDatXeService {
                     xe.setTrangThai(TrangThaiXe.CHUA_THUE.getValue());
                     xeRepository.save(xe);
                 }
+                // trừ lượt đặt xe cho mẫu xe
+                for (Integer mauXeId : listMauxeId) {
+                    MauXe mauXe = mauXeRepository.findById(mauXeId).get();
+                    mauXe.setSoluotdat(mauXe.getSoluotdat() - 1);
+                    mauXeRepository.save(mauXe);
+                }
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         "Hết xe đặt cho mẫu xe: " + mauXeRepository.findById(chiTietRequest.getMauXeId()).get().getTenMau()
                 );
+                // trừ lượt đặt xe
+
 
             }
+            //tăng số lượt đặt
+            MauXe mauXe = mauXeRepository.findById(chiTietRequest.getMauXeId()).get();
+            mauXe.setSoluotdat(mauXe.getSoluotdat() + 1);
+            mauXeRepository.save(mauXe);
+            listMauxeId.add(chiTietRequest.getMauXeId());
             Xe xe =findAvailableXeByMauXeId(chiTietRequest.getMauXeId()).get(0);
             listXeId.add(xe.getXeId());
             xe.setTrangThai(TrangThaiXe.DA_THUE.getValue());

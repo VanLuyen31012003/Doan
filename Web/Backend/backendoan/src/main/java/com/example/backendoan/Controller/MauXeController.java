@@ -3,6 +3,7 @@ package com.example.backendoan.Controller;
 import com.example.backendoan.Dto.Request.MauXeRequest;
 import com.example.backendoan.Dto.Response.ApiResponse;
 import com.example.backendoan.Dto.Response.MauXeResponse;
+import com.example.backendoan.Entity.AnhXe;
 import com.example.backendoan.Service.MauXeService;
 import lombok.extern.java.Log;
 import org.springframework.core.io.Resource;
@@ -12,9 +13,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -155,12 +159,35 @@ public class MauXeController {
     }
     //lay10 xe nhieuf luowjt dat nhat
     @GetMapping("/gettop10mauxe")
-    public ApiResponse<List<MauXeResponse>> getTop10MauXeBySoLuotDat() {
-        List<MauXeResponse> topMauXeList = mauXeService.getTop10MauXeBySoLuotDat();
+    public ApiResponse<List<MauXeResponse>> getTop10MauXeBySoLuotDat(
+            @RequestParam(required = false) Integer loaiXeId) {
+        List<MauXeResponse> topMauXeList = mauXeService.getTop10MauXeBySoLuotDat(loaiXeId);
         return ApiResponse.<List<MauXeResponse>>builder()
                 .success(true)
                 .message("Lấy top 10 mẫu xe có số lượt đặt nhiều nhất thành công")
                 .data(topMauXeList)
                 .build();
+    }
+    //upload anh by mauxeId
+    @PostMapping("/upload")
+    public ApiResponse<List<AnhXe>> uploadImages(
+            @RequestParam("mauXeId") Integer mauXeId,
+            @RequestParam("files") List<MultipartFile> files) {
+        try {
+            if (files == null || files.isEmpty()) {
+                throw new IllegalArgumentException("Vui lòng gửi ít nhất một file ảnh");
+            }
+
+            List<AnhXe> uploadedImages = mauXeService.uploadImages(mauXeId, files);
+            return ApiResponse.<List<AnhXe>>builder()
+                    .success(true)
+                    .message("Upload ảnh thành công")
+                    .data(uploadedImages)
+                    .build();
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi lưu file: " + e.getMessage());
+        }
     }
 }
