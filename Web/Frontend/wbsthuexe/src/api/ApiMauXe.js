@@ -20,6 +20,35 @@ const ApiMauXe = {
             url = `/mauxe/gettop10mauxe?loaiXeId=${mauxeid}`;
        
         return axiosclient.get(url);
+    },
+    getMauXeByloaixe: (loaiXeId) => {
+        console.log("hahhhaaa",loaiXeId)
+        const url = `/mauxe/getmauxetheoloaixe/${loaiXeId}?page=0&size=10&sort=mauXeId,asc`;
+        console.log("đây là ;loai xe id",loaiXeId)
+        return axiosclient.get(url)
+        
+    },
+   searchMauxe: (tenMau = '', hangXeId = '', loaiXeId = '', page = 0, size = 10) => {
+    let url = `/mauxe/search?`;
+
+    // Thêm các tham số vào URL nếu chúng được truyền
+    if (tenMau) url += `tenMau=${tenMau}&`;
+    if (hangXeId) url += `hangXeId=${hangXeId}&`;
+    if (loaiXeId) url += `loaiXeId=${loaiXeId}&`;
+
+    // Thêm các tham số phân trang
+    url += `page=${page}&size=${size}`;
+
+    return axiosclient.get(url);
+    },
+    getallHangXe: () => {
+        const url = `/mauxe/getallhangxe`;
+        return axiosclient.get(url)
+       
+    },
+    getallLoaiXe: () => {
+        const url = '/mauxe/getallloaixe';
+        return axiosclient.get(url);
     }
     
     

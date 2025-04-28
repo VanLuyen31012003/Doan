@@ -3,6 +3,7 @@ import { TiTick } from "react-icons/ti";
 import { Link } from "react-router-dom";
 import ApiMauXe from "../api/ApiMauXe";
 function Featureditem(props) {
+
   const [products, setProducts] = React.useState([]);
   const fetchProducts = async () => {
     try {
@@ -33,8 +34,8 @@ function Featureditem(props) {
           </div>
           <div className="mt-[30px] flex md:flex-row flex-col w-full   gap-4 overflow-x-auto scroll-container ">
             {products?.map((item, index) => (
-              <Link
-                to="/chitietsp"
+              <Link 
+  to={`/chitietsp/${item.mauXeId}`}
                 className="hover:scale-105  duration-300 min-w-[250px]  md:min-w-[300px] snap-start flex flex-col gap-3  text-[#555555] shadow-lg rounded py-4"
               >
                 <div

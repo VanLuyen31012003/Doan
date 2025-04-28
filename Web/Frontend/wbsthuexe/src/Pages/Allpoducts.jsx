@@ -1,60 +1,88 @@
-import React, { useState, useEffect } from 'react';
-import { Row, Col, Card, Image, Typography, Tag, Pagination, Input, Select,  Empty, Spin, Button } from 'antd';
-import { SearchOutlined, FilterOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import {
+  Row,
+  Col,
+  Card,
+  Image,
+  Typography,
+  Tag,
+  Pagination,
+  Input,
+  Select,
+  Empty,
+  Spin,
+  Button,
+} from "antd";
+import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
+import { Link } from "react-router-dom";
 import { IoMdHeart } from "react-icons/io";
+import ApiMauXe from "../api/ApiMauXe"; // Import API
 
 function AllProducts() {
-  // Mock data - trong thực tế bạn sẽ lấy dữ liệu từ API
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchText, setSearchText] = useState('');
-  const [filteredCategory, setFilteredCategory] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(12);
+  const [products, setProducts] = useState([]); // Dữ liệu sản phẩm
+  const [loading, setLoading] = useState(true); // Trạng thái loading
+  const [searchText, setSearchText] = useState(""); // Tìm kiếm
+  const [filteredCategory, setFilteredCategory] = useState(null); // Lọc danh mục
+  const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
+  const [pageSize, setPageSize] = useState(12); // Số sản phẩm mỗi trang
+  const [totalProducts, setTotalProducts] = useState(0); // Tổng số sản phẩm
+  const [hangXeList, setHangXeList] = useState([]);
+const [loaiXeList, setLoaiXeList] = useState([]);
   
+
   const { Title, Text } = Typography;
   const { Option } = Select;
 
+  // Gọi API để lấy dữ liệu sản phẩm
+const fetchProducts = async () => {
+  setLoading(true);
+  try {
+    const response = await ApiMauXe.searchMauxe(
+      searchText,
+      filteredCategory?.hangXeId || "",
+      filteredCategory?.loaiXeId || "",
+      currentPage - 1,
+      pageSize
+    );
+    setProducts(response.data.data.content || []);
+    setTotalProducts(response.data.data.page?.totalElements || 0);
+  } catch (error) {
+    console.error("Error fetching products:", error);
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
-    // Giả lập API call để lấy dữ liệu
-    setTimeout(() => {
-      const dummyData = [];
-      const categories = ['Điện thoại', 'Laptop', 'Tablet', 'Phụ kiện', 'Đồng hồ'];
-      const brands = ['Apple', 'Samsung', 'Xiaomi', 'Dell', 'HP', 'Asus'];
-      
-      for (let i = 1; i <= 100; i++) {
-        const category = categories[Math.floor(Math.random() * categories.length)];
-        const brand = brands[Math.floor(Math.random() * brands.length)];
-        dummyData.push({
-          key: i,
-          id: `SP${1000 + i}`,
-          name: `${brand} ${category} ${Math.floor(Math.random() * 20)}`,
-          price: Math.floor(Math.random() * 50 + 1) * 1000000,
-          stock: Math.floor(Math.random() * 100),
-          category: category,
-          brand: brand,
-          status: Math.random() > 0.2 ? 'Còn hàng' : 'Hết hàng',
-          image: `/api/placeholder/300/300`
-        });
-      }
-      setProducts(dummyData);
-      setLoading(false);
-    }, 1000);
-  }, []);
+  const fetchFilters = async () => {
+    try {
+      const hangXeResponse = await ApiMauXe.getallHangXe();
+      const loaiXeResponse = await ApiMauXe.getallLoaiXe();
 
-  // Lọc sản phẩm dựa vào tìm kiếm và danh mục
-  const filteredProducts = products.filter(product => {
-    const matchSearch = searchText ? 
-      product.name.toLowerCase().includes(searchText.toLowerCase()) : true;
-    const matchCategory = filteredCategory ? 
-      product.category === filteredCategory : true;
-    return matchSearch && matchCategory;
-  });
+      if (hangXeResponse.data.success) {
+        setHangXeList(hangXeResponse.data.data);
+        console.log("đây là hang xe response.data.data",hangXeResponse.data.data)
+      }
+      if (loaiXeResponse.data.success) {
+        setLoaiXeList(loaiXeResponse.data.data);
+                console.log("đây là hang xe response.data.data",loaiXeResponse.data.data)
+
+      }
+    } catch (error) {
+      console.error("Error fetching filter data:", error);
+    }
+  };
+
+  fetchFilters();
+}, []);
+
+  // Gọi API khi component được mount hoặc khi các điều kiện thay đổi
+  useEffect(() => {
+    fetchProducts();
+  }, [searchText, filteredCategory, currentPage, pageSize]);
 
   // Lấy danh sách danh mục duy nhất cho bộ lọc
-  const categories = [...new Set(products.map(item => item.category))];
-
+  // const categories = [...new Set(products.map(item => item.loaiXeReponse?.tenLoaiXe))];
+  const categories = [1, 2, 3, 4, 5];
   // Xử lý tìm kiếm
   const handleSearch = (value) => {
     setSearchText(value);
@@ -62,14 +90,18 @@ function AllProducts() {
   };
 
   // Xử lý lọc danh mục
-  const handleCategoryFilter = (value) => {
-    setFilteredCategory(value);
-    setCurrentPage(1); // Reset về trang đầu tiên khi lọc
-  };
+const handleCategoryFilter = (value, type) => {
+  if (type === "hangXe") {
+    setFilteredCategory({ ...filteredCategory, hangXeId: value });
+  } else if (type === "loaiXe") {
+    setFilteredCategory({ ...filteredCategory, loaiXeId: value });
+  }
+  setCurrentPage(1); // Reset về trang đầu tiên khi lọc
+};
 
   // Xử lý reset bộ lọc
   const handleReset = () => {
-    setSearchText('');
+    setSearchText("");
     setFilteredCategory(null);
     setCurrentPage(1);
   };
@@ -80,121 +112,153 @@ function AllProducts() {
     setPageSize(size);
   };
 
-  // Lấy sản phẩm của trang hiện tại
-  const getCurrentPageData = () => {
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    return filteredProducts.slice(startIndex, endIndex);
-  };
-
   // Format giá tiền
   const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', { 
-      style: 'currency', 
-      currency: 'VND' 
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   return (
     <div className="px-4 py-6 w-[80%] mx-auto mt-11 font-medium text-xl">
       <Title level={2}>Tất cả sản phẩm</Title>
-      
+
       <Card className="mb-6">
         <div className="flex flex-wrap gap-4 items-end">
           <div className="min-w-48">
             <Text strong>Tìm kiếm</Text>
-            <Input 
-              placeholder="Tên sản phẩm" 
+            <Input
+              placeholder="Tên sản phẩm"
               value={searchText}
               onChange={(e) => handleSearch(e.target.value)}
-              prefix={<SearchOutlined />} 
+              prefix={<SearchOutlined />}
               allowClear
             />
           </div>
-          
-          <div className="min-w-48">
-            <Text strong>Danh mục</Text>
-            <Select
-              placeholder="Chọn danh mục"
-              value={filteredCategory}
-              onChange={handleCategoryFilter}
-              style={{ width: '100%' }}
-              allowClear
-            >
-              {categories.map(category => (
-                <Option key={category} value={category}>{category}</Option>
-              ))}
-            </Select>
-          </div>
-          
-          <Button  icon={<FilterOutlined />}
-            onClick={handleReset}>
+
+<div className="min-w-48">
+  <Text strong>Hãng xe</Text>
+  <Select
+    placeholder="Chọn hãng xe"
+    value={filteredCategory?.hangXeId || null} // Chỉ lưu hangXeId
+    onChange={(value) => handleCategoryFilter(value, "hangXe")}
+    style={{ width: "100%" }}
+    allowClear
+  >
+    {hangXeList.map((hangXe) => (
+      <Option key={hangXe.hangXeId} value={hangXe.hangXeId}>
+        {hangXe.tenHang}
+      </Option>
+    ))}
+  </Select>
+</div>
+
+<div className="min-w-48">
+  <Text strong>Loại xe</Text>
+  <Select
+    placeholder="Chọn loại xe"
+    value={filteredCategory?.loaiXeId || null} // Chỉ lưu loaiXeId
+    onChange={(value) => handleCategoryFilter(value, "loaiXe")}
+    style={{ width: "100%" }}
+    allowClear
+  >
+    {loaiXeList.map((loaiXe) => (
+      <Option key={loaiXe.loaiXeId} value={loaiXe.loaiXeId}>
+        {loaiXe.tenLoai}
+      </Option>
+    ))}
+  </Select>
+</div>
+
+          <Button icon={<FilterOutlined />} onClick={handleReset}>
             Đặt lại bộ lọc
           </Button>
         </div>
       </Card>
-      
+
       {loading ? (
         <div className="flex justify-center items-center h-64">
           <Spin size="large" />
         </div>
-      ) : filteredProducts.length > 0 ? (
+      ) : products.length > 0 ? (
         <>
           <Row gutter={[16, 16]}>
-            {getCurrentPageData().map(product => (
-              <Col xs={24} sm={12} md={8} lg={6} key={product.id}>
-                <Card 
-                  hoverable 
-                  cover={<Image alt={product.name} src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRXtJvMPveA9AsEBbUby5dBBhUnqA3it7JzoQ&s' preview={false} />}
+            {products.map((product) => (
+              <Col xs={24} sm={12} md={8} lg={6} key={product.mauXeId}>
+                <Card
+                  hoverable
+                  cover={
+                    <Image
+                      width={280}
+                      height={200}
+                      className="w-full object-center"
+                      style={{ objectFit: "cover" }}
+                      src={product.anhDefault || "link ảnh mặc định"}
+                      alt={product.tenMau}
+                      preview={false}
+                    />
+                  }
                   className="h-full flex flex-col"
                 >
                   <div className="flex flex-col flex-grow">
-                    <div>
-                       <Tag color={product.status === 'Còn hàng' ? 'green' : 'red'} className="self-start mb-2">
-                      {product.status}
-                    </Tag>
-                    <Text type="secondary" className="mb-1">{product.category}</Text>
-                    </div>
-                   
-                    <Title level={5} className="mb-1" ellipsis={{ rows: 2, tooltip: product.name }}>
-                      {product.name}
-                    </Title>
-                    <Text type="secondary" className="mb-1">{product.brand}</Text>
-                    <div className="mt-auto pt-2">
-                      <Title level={4} className="mb-2 fire">{formatPrice(product.price)}</Title>
-                      <div className='flex justify-between items-center px-2'>
-                         <Link to="/chitietsp">
-                        <IoMdHeart size={36} className='text-cam hover:scale-110 duration-300' />
-
-                      </Link>
-                      <Link to="/chitietsp">
-                         <button
-                        icon={<ShoppingCartOutlined />} 
-                        block
-                        className='bg-cam py-2 px-4 rounded-sm  hover:bg-ghi text-white !important'
+                    <div className="flex justify-between">
+                      <Tag
+                        color={product.soLuongxeconlai > 0 ? "green" : "red"}
+                        className="self-start mb-2"
                       >
-                        Đặt xe ngay
-                        </button>
-                     </Link>
+                        {product.soLuongxeconlai > 0 ? "Còn hàng" : "Hết hàng"}
+                      </Tag>
+                      <Title
+                        level={5}
+                        className="mb-1"
+                        ellipsis={{ rows: 2, tooltip: product.tenMau }}
+                      >
+                        {product.tenMau}
+                      </Title>
+                    </div>
+
+                    {/* <div className='flex bg-blue-50 items-center justify-around  flex-row w-full'>
+                      <Text type="secondary" className="mb-1">{product.loaiXeReponse?.tenLoaiXe}</Text>
+                                          <Text type="secondary" className="mb-1">{product.tenHangXe}</Text>
+
+                    </div> */}
+
+                    <div className="mt-auto pt-2">
+                      <Title level={4} className="mb-2 fire">
+                        {formatPrice(product.giaThueNgay)}
+                      </Title>
+                      <div className="flex justify-between items-center px-2">
+                        <Link to={`/chitietsp/${product.mauXeId}`}>
+                          <IoMdHeart
+                            size={36}
+                            className="text-cam hover:scale-110 duration-300"
+                          />
+                        </Link>
+                        <Link to={`/chitietsp/${product.mauXeId}`}>
+                          <button className="bg-cam py-2 px-4 rounded-sm hover:bg-ghi text-white">
+                            Đặt xe ngay
+                          </button>
+                        </Link>
                       </div>
-                     
-                     
                     </div>
                   </div>
                 </Card>
               </Col>
             ))}
           </Row>
-          
+
           <div className="mt-6 flex justify-center">
-            <Pagination 
+            <Pagination
               current={currentPage}
               pageSize={pageSize}
-              total={filteredProducts.length}
+              total={totalProducts}
               onChange={handlePageChange}
               showSizeChanger
-              pageSizeOptions={['12', '24', '36', '48']}
-              showTotal={(total, range) => `${range[0]}-${range[1]} của ${total} sản phẩm`}
+              pageSizeOptions={["6","12", "24", "36"]}
+              showTotal={(total, range) =>
+                `${range[0]}-${range[1]} của ${total} sản phẩm`
+              }
             />
           </div>
         </>

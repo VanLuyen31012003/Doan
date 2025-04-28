@@ -24,7 +24,7 @@ const Detailproduct = () => {
     fetchdata(); // Gọi hàm fetchdata khi component được mount
     
   }
-  , []);
+  , [id]);
   return (
     <>
       <Diplayproduct data={data} />

@@ -4,6 +4,8 @@ import com.example.backendoan.Dto.Request.MauXeRequest;
 import com.example.backendoan.Dto.Response.ApiResponse;
 import com.example.backendoan.Dto.Response.MauXeResponse;
 import com.example.backendoan.Entity.AnhXe;
+import com.example.backendoan.Entity.HangXe;
+import com.example.backendoan.Entity.LoaiXe;
 import com.example.backendoan.Service.MauXeService;
 import lombok.extern.java.Log;
 import org.springframework.core.io.Resource;
@@ -169,14 +171,19 @@ public class MauXeController {
                 .build();
     }
     //upload anh by mauxeId
+    @GetMapping("")
+
     @PostMapping("/upload")
     public ApiResponse<List<AnhXe>> uploadImages(
             @RequestParam("mauXeId") Integer mauXeId,
             @RequestParam("files") List<MultipartFile> files) {
         try {
+            //print hello word
+
             if (files == null || files.isEmpty()) {
                 throw new IllegalArgumentException("Vui lòng gửi ít nhất một file ảnh");
             }
+              // in ra helo
 
             List<AnhXe> uploadedImages = mauXeService.uploadImages(mauXeId, files);
             return ApiResponse.<List<AnhXe>>builder()
@@ -190,4 +197,23 @@ public class MauXeController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi lưu file: " + e.getMessage());
         }
     }
+    @GetMapping("/getallloaixe")
+    public ApiResponse<List<LoaiXe>>getall()
+    {
+        return ApiResponse.<List<LoaiXe>>builder()
+                .message("Lấy tất xe thành cong")
+                .success(true)
+                .data(mauXeService.getallLoaiXe())
+                .build();
+    }
+    @GetMapping("/getallhangxe")
+    public ApiResponse<List<HangXe>>getallhx(){
+        return ApiResponse.<List<HangXe>>builder()
+                .message("lay thanh con")
+                .success(true)
+                .data(mauXeService.getallhangxe())
+                .build();
+    }
+
+
 }

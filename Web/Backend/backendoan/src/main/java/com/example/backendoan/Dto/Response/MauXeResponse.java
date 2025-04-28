@@ -1,6 +1,7 @@
 package com.example.backendoan.Dto.Response;
 
 import com.example.backendoan.Entity.LoaiXe;
+import com.example.backendoan.Entity.ThongTinKyThuat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,5 +24,6 @@ public class MauXeResponse {
     private Integer soLuongxeconlai;
     private Integer soluotdat;
     private List<String> anhXeList;
+    private ThongTinKyThuat thongTinKyThuat;
 
 }

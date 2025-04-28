@@ -3,10 +3,7 @@ package com.example.backendoan.Service;
 import com.example.backendoan.Dto.Request.MauXeRequest;
 import com.example.backendoan.Dto.Response.LoaiXeReponse;
 import com.example.backendoan.Dto.Response.MauXeResponse;
-import com.example.backendoan.Entity.AnhXe;
-import com.example.backendoan.Entity.HangXe;
-import com.example.backendoan.Entity.LoaiXe;
-import com.example.backendoan.Entity.MauXe;
+import com.example.backendoan.Entity.*;
 import com.example.backendoan.Enums.TrangThaiXe;
 import com.example.backendoan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +37,8 @@ public class MauXeService {
     private XeRepository xeRepository;
     @Autowired
     private AnhXeRepository anhXeRepository;
+    @Autowired
+    private  ThongTinKyThuatRepository thongTinKyThuatRepository;
 
     public Page<MauXeResponse> getAllMauXe(Pageable pageable) {
         return mauXeRepository.findAll(pageable).map(mauXe -> {
@@ -72,7 +71,9 @@ public class MauXeService {
     public MauXeResponse getMauXeById(int mauXeId) {
         MauXe mauXe = mauXeRepository.findById(mauXeId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy mẫu xe với ID: " + mauXeId));
-
+        ThongTinKyThuat thongTinKyThuat = thongTinKyThuatRepository
+                .findFirstByMauXeIdOrderByKyThuatIdAsc(mauXeId)
+                .orElse(null);
         // Lấy tên hãng xe
         String tenHangXe = hangXeRepository.findById(mauXe.getHangXeId())
                 .map(HangXe::getTenHang)
@@ -101,6 +102,7 @@ public class MauXeService {
                 .anhDefault(mauXe.getAnhdefault())
                 .loaiXeReponse(loaiXeResponse)
                 .anhXeList(anhXeList)
+                .thongTinKyThuat(thongTinKyThuat)
                 .soLuongxeconlai(xeRepository.countByMauXe_MauXeIdAndTrangThai(mauXe.getMauXeId(), TrangThaiXe.CHUA_THUE.getValue()))
                 .build();
     }
@@ -353,5 +355,13 @@ public class MauXeService {
         }
 
         return uploadedImages;
+    }
+    public List<LoaiXe> getallLoaiXe ()
+    {
+        return loaiXeRepository.findAll();
+    }
+    public List<HangXe> getallhangxe()
+    {
+        return hangXeRepository.findAll();
     }
 }
