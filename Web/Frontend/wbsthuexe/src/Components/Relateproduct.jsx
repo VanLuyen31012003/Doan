@@ -21,6 +21,12 @@ function RelateProduct(props) {
       console.error("Error fetching product data:", error); // Xử lý lỗi nếu có
     }
   };
+   const formatPrice = (price) => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(price);
+  };
   useEffect(() => {
     fetchdata();
   }, [data]);
@@ -54,14 +60,19 @@ function RelateProduct(props) {
                         alt={item.tenMau}
                         
                 />
-                <h1 className="px-2 font-semibold text-black">{item.tenMau}</h1>
+                <div className="flex justify-around ">
+                  <h1 className="px-2 font-semibold text-black">{item.tenMau}</h1>
+                <h1 className="px-2 font-bold fire "> {formatPrice(item.giaThueNgay)}</h1>
+                </div>
+                
                 <ul className="px-4">
                   {/* <li className="flex gap-1 items-center"><TiTick /> 2 mũ bảo hiểm</li>
                     <li className="flex gap-1 items-center"><TiTick /> 2 áo mưa dùng 1 lần</li>
                     <li className="flex gap-1 items-center"><TiTick /> Bảo hiểm + Đăng kí photo</li> */}
                 </ul>
                 <button className="ml-3 w-[40%] p-2 rounded bg-[#DD5C36] font-medium text-white">
-                  Đặt xe
+                  Đặt xe 
+                  
                 </button>
               </div>
             ))}

@@ -11,6 +11,9 @@ import {  Routes, Route} from "react-router-dom";
 import Login from './Pages/Login';
 import Register from './Pages/Register';
 import { MotoProvider } from './Context/MotoContext';
+import Infouser from './Pages/Infouser';
+import Cart from './Pages/Cart';
+import { ToastContainer } from 'react-toastify';
 
 function App() {
   return (
@@ -25,11 +28,24 @@ function App() {
         <Route path='/allsanpham' element={<Allpoducts />} />
         <Route path='/login' element={<Login />} />
         <Route path='/register' element={<Register />} />
-
-
+        <Route path='/infouser' element={<Infouser />} />
+        <Route path='/yeuthich' element={<Cart />} />
         
       </Routes>
-      <Footer/>
+      <ToastContainer
+  position="top-center"
+  autoClose={3000}
+  hideProgressBar={false}
+  newestOnTop={false}
+  closeOnClick
+  rtl={false}
+  pauseOnFocusLoss
+  draggable
+  pauseOnHover
+/>  
+
+      <Footer />
+      
       
     </MotoProvider>
   );

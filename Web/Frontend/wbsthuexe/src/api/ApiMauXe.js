@@ -1,7 +1,7 @@
 import axiosclient from "./Axiosclient";
 
 const ApiMauXe = {
-    getallMauXe: () => {
+    getallMauXeb: () => {
         const url = '/mauxe/';
         return axiosclient.get(url);
     },

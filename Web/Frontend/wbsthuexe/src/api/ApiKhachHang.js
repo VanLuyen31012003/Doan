@@ -2,7 +2,7 @@ import axiosclient from "./Axiosclient";
 
 const ApiKhachHang = {
     getinfo:() => {
-        const url = '/khachhang/';
+        const url = '/khachhang/getmyinfo';
         return axiosclient.get(url);
     },
     register: (user) => {

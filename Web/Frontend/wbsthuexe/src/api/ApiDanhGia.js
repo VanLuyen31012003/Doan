@@ -22,3 +22,4 @@ const ApiDanhGia = {
         return axiosclient.delete(url);
     }
 };
+export default ApiDanhGia;

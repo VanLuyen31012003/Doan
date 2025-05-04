@@ -54,3 +54,24 @@
 .scroll-container::-webkit-scrollbar {
   display: none; /* Ẩn thanh scrollbar trên Chrome, Safari */
 }
+/* Thêm vào file CSS */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  50% { transform: translateX(2px); }
+  75% { transform: translateX(-2px); }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+/* App.css hoặc global.css */
+.Toastify__toast {
+  border-radius: 12px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.Toastify__toast--success {
+  background: #ff7f50; /* màu cam */
+  color: #ffffff;
+}
