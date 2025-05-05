@@ -1,7 +1,7 @@
 import axiosclient from "./Axiosclient";
 const ApiDonDat = {
     getdondatbytoken: () => {
-        alert("đây là api dondat by token")
+        // alert("đây là api dondat by token")
         const url = '/dondatxe/getdonhangbytoken';
         return axiosclient.get(url);
     },

@@ -13,10 +13,10 @@ function Cart() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto bg-white shadow-md rounded mt-[160px] text-ghi">
-      <h2 className="text-2xl font-bold mb-6">Giỏ hàng</h2>
+      <h2 className="text-2xl font-bold mb-6">Các xe yêu thích</h2>
 
       {cartItems.length === 0 ? (
-        <p>Giỏ hàng của bạn đang trống.</p>
+        <p>Chưa có xe yêu thích nào.</p>
       ) : (
         <>
           <table className="w-full border-collapse border border-gray-300 mb-6">
@@ -24,7 +24,7 @@ function Cart() {
               <tr>
                 <th className="border border-gray-300 px-4 py-2">Ảnh</th>
                 <th className="border border-gray-300 px-4 py-2">Tên sản phẩm</th>
-                <th className="border border-gray-300 px-4 py-2">Giá</th>
+                <th className="border border-gray-300 px-4 py-2">Giá/Ngày</th>
                 <th className="border border-gray-300 px-4 py-2">Số lượng</th>
                 <th className="border border-gray-300 px-4 py-2">Thành tiền</th>
                 <th className="border border-gray-300 px-4 py-2">Hành động</th>
@@ -72,7 +72,7 @@ function Cart() {
               onClick={clearCart} // Xóa toàn bộ giỏ hàng
               className="px-6 py-2 bg-gradient-to-r font-bold from-ghi to-cam  text-white rounded hover:bg-cam"
             >
-              Xóa toàn bộ giỏ hàng
+              Đặt tất cả xe
             </button>
             <h3 className="text-xl font-bold">
               Tổng tiền:{" "}

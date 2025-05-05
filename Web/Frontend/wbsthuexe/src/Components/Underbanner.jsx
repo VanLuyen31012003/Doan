@@ -47,7 +47,7 @@ function Underbanner(props) {
             </div>
             <div className='flex flex-col md:flex-row  w-full gap-6   h-[85%] rounded-b-md justify-between rounded-r-md  bg-[#f9f9f9] shadow-xl   p-12 '>
                     <div className='w-full md:w-[50%] gap-4 flex-col flex'>
-                    <h1 className='font-semibold text-xl '>Tại sao chọn HIMOTO</h1>
+                    <h1 className='font-semibold text-xl '>Tại sao chọn MOTOVIP</h1>
                     <ul className='gap-2 flex-col  flex items-start text-[#2c2a29]'>
                         <li className='flex gap-2 items-center'><TiTick className='text-[#DD5C36]' /> Ngày đầu thuê tròn 24H </li>
                         <li className='flex gap-2 items-center'><TiTick className='text-[#DD5C36]'/> Tiền đặt cọc chỉ từ 500.000VND</li>

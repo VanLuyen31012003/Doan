@@ -13,7 +13,7 @@ function Infouser() {
     try {
       const response = await ApiDonDat.getdondatbytoken();
       setOrders(response.data.data);
-      alert(response.data.data);
+      // alert(response.data.data);
     } catch (error) {
       console.error("Error fetching orders:", error); 
     }
@@ -104,7 +104,7 @@ const orders1 = [
           <strong>Số điện thoại:</strong> {userInfo?.soDienThoai}
         </div>
         <div className="mb-4">
-          <strong>Địa chỉ:</strong> {userInfo?.matKhau}
+          <strong>Địa chỉ:</strong> Phúc Tân hoàn kiếm hà nội
         </div>
                 </div>
                 {/* Các xe đang thuê */}

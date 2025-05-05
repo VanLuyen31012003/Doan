@@ -187,20 +187,22 @@ const handleCategoryFilter = (value, type) => {
             {products.map((product) => (
               <Col xs={24} sm={12} md={8} lg={6} key={product.mauXeId}>
                 <Card
-                  hoverable
-                  cover={
-                    <Image
-                      width={280}
-                      height={200}
-                      className="w-full object-center"
-                      style={{ objectFit: "cover" }}
-                      src={product.anhDefault || "link ảnh mặc định"}
-                      alt={product.tenMau}
-                      preview={false}
-                    />
-                  }
-                  className="h-full flex flex-col"
-                >
+  hoverable
+  cover={
+    <div className="flex justify-center items-center h-[200px]">
+      <Image
+        width={280}
+        height={200}
+        className="object-center"
+        style={{ objectFit: "cover" }}
+        src={product.anhDefault || "link ảnh mặc định"}
+        alt={product.tenMau}
+        preview={false}
+      />
+    </div>
+  }
+  className="h-full flex flex-col "
+>
                   <div className="flex flex-col flex-grow">
                     <div className="flex justify-between">
                       <Tag

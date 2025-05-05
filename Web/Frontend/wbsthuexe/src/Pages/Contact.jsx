@@ -16,7 +16,7 @@ const ContactPage = () => {
       <div className=" text-[#ffffff] h-[250px] md:h-[400px] bg-[#222222] flex items-center">
         <div className=" w-[70%] items-center flex flex-col  gap-5 mx-auto mt-[6vw]">
           <h1 className="text-2xl text-center md:text-4xl font-bold uppercase">
-            Liên hệ HIMOTO Việt Nam
+            Liên hệ MOTOVIP Việt Nam
           </h1>
           <p className="text-xs md:text-xl">
             Chọn loại xe và địa điểm, thời gian nhận xe.
@@ -26,7 +26,7 @@ const ContactPage = () => {
       <div className="container bg-[#f6f6f6] my-5 rounded-md  mx-auto px-4 py-8 flex flex-col md:flex-row max-w-5xl">
         <div className="w-full    md:w-1/2 pr-0 md:pr-8">
           <h1 className="text-3xl font-bold mb-6 text-[#dd5c36]">
-            Liên hệ với HIMOTO
+            Liên hệ với MOTOVIP
           </h1>
 
           <form onSubmit={handleSubmit} className="space-y-4">
