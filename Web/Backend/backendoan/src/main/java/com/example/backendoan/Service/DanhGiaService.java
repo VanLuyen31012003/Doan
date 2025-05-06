@@ -95,7 +95,8 @@ public class DanhGiaService {
         }
         // Nếu không thỏa mãn điều kiện, ném ngoại lệ
         if (!hasOrderedMauXe) {
-            throw new IllegalStateException("Khách hàng chưa đặt đơn nào có mẫu xe với ID " + danhGiaRequest.getMauXeId() + ", không thể đánh giá.");
+
+            throw new IllegalStateException("Bạn chưa thuê " + mauXeRepository.findById(danhGiaRequest.getMauXeId()).get().getTenMau() + ", không thể đánh giá.");
         }
 
         // Tạo và lưu đánh giá

@@ -4,6 +4,7 @@ import Aboutproduct from '../Components/Aboutproduct';
 import Relateproduct from '../Components/Relateproduct';
 import {  useParams } from 'react-router-dom';
 import ApiMauXe from '../api/ApiMauXe';
+import Evaluate from '../Components/Evaluate';
 
 
 const Detailproduct = () => {
@@ -29,6 +30,7 @@ const Detailproduct = () => {
     <>
       <Diplayproduct data={data} />
       <Aboutproduct data={data} />
+      <Evaluate data={data} />
       <Relateproduct data={data}/>
      </>
   );

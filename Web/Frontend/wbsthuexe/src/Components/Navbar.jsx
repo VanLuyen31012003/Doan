@@ -41,12 +41,7 @@ function Navbar() {
 
   return (
     <div className="w-full md:fixed md:top-0 md:left-0 md:z-10 flex flex-col-reverse md:flex-row bg-white text-[#777777] h-[110px] items-center justify-around">
-      {/* <img
-        src="https://himoto.vn/wp-content/uploads/2024/10/himoto_black.png"
-        className="w-[25%] md:w-[15%] p-4"
-        style={{ boxSizing: "content-box" }}
-        alt="himonoto"
-      /> */}
+  
       <h1 style={{ fontSize: "48px", fontWeight: "1000", color: "black" }}> MOTOVIP</h1>
 
       <div className="md:ml-[25%] flex flex-col gap-3 relative">

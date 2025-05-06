@@ -1,5 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
-import ApiKhachHang from "../api/ApiKhachHang";
+import React, { createContext, useState } from "react";
 
 export const MotoContext = createContext();
 

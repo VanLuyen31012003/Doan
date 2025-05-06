@@ -15,7 +15,7 @@ const AboutProduct = (props) => {
 
   return (
     <div className="mx-auto py-8 bg-gray-100 w-full">
-      <div className="bg-white w-[80%] mx-auto shadow-xl rounded-lg overflow-hidden">
+      <div className="bg-white w-[60%] mx-auto shadow-xl rounded-lg overflow-hidden">
         <table className="w-full">
           <thead className="bg-gradient-to-r from-ghi to-cam text-white">
             <tr>

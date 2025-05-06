@@ -47,7 +47,6 @@ function Diplayproduct(props) {
     });
     setTimeout(() => setIsShaking(false), 300);
   };
-
   const handleOrderClick = () => {
     setIsModalVisible(true);
   };
