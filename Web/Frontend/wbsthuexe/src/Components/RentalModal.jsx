@@ -1,27 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { Modal } from "antd";
+import { message, Modal } from "antd";
 import ApiKhachHang from "../api/ApiKhachHang";
+import ApiDonDat from "../api/ApiDonDat";
+import { toast } from "react-toastify";
+import DatePicker from "react-datepicker"; // Thêm react-datepicker
+import "react-datepicker/dist/react-datepicker.css"; // Thêm CSS
+import { format } from "date-fns"; // Để định dạng ngày
 
 const RentalModal = ({
   visible,
   onOk,
   onCancel,
-   
-  pricePerDay1, // Giá thuê xe 1 ngày (truyền từ component cha)
+  data,
+  pricePerDay1,
 }) => {
-    const [user, setUser] = useState(null);
-    const [rentalDate, setRentalDate] = useState(""); // Ngày nhận xe
-    const[ returnDate,setReturnDate] = useState(); // Ngày trả xe
-    const [rentalLocation,setRentalLocation] = useState(""); // Địa điểm nhận xe
-    const pricePerDay = pricePerDay1 || 0; // Giá thuê xe 1 ngày
-  const [totalPrice, setTotalPrice] = useState(0); // Tổng tiền
+  const [user, setUser] = useState(null);
+  const [rentalDate, setRentalDate] = useState(null); // Dùng null cho DatePicker
+  const [returnDate, setReturnDate] = useState(null); // Dùng null cho DatePicker
+  const [rentalLocation, setRentalLocation] = useState("");
+  const pricePerDay = pricePerDay1 || 0;
+  const [totalPrice, setTotalPrice] = useState(0);
 
   const fetchUserInfo = async () => {
     try {
       const response = await ApiKhachHang.getinfo();
       setUser(response.data.data);
     } catch (error) {
-      console.error("Error fetching user info:", error);
+      console.error("Lỗi khi lấy thông tin người dùng:", error);
     }
   };
 
@@ -30,14 +35,74 @@ const RentalModal = ({
     if (rentalDate && returnDate) {
       const startDate = new Date(rentalDate);
       const endDate = new Date(returnDate);
-      const days = Math.max((endDate - startDate) / (1000 * 60 * 60 * 24), 0); // Tính số ngày thuê
-      setTotalPrice(days * pricePerDay); // Tổng tiền = số ngày * giá thuê 1 ngày
+      const days = Math.max((endDate - startDate) / (1000 * 60 * 60 * 24), 0);
+      setTotalPrice(days * pricePerDay);
     }
   }, [rentalDate, returnDate, pricePerDay]);
 
   useEffect(() => {
     fetchUserInfo();
   }, []);
+
+  const handleConfirm = async () => {
+    if (!rentalDate || !returnDate || !rentalLocation) {
+      toast(`Vui lòng nhập đủ thông tin`, {
+        bodyClassName: "text-lg font-semibold",
+        className: "bg-black text-white font-bold p-4 rounded-xl",
+        position: "top-center",
+        autoClose: 1000,
+      });
+      return;
+    }
+    if (rentalDate >= returnDate) {
+      toast(`Ngày trả xe phải lớn hơn ngày nhận xe`, {
+        bodyClassName: "text-lg font-semibold",
+        className: "bg-black text-white font-bold p-4 rounded-xl",
+        position: "top-center",
+        autoClose: 1000,
+      });
+      return;
+    }
+    const startDate = new Date(rentalDate);
+    const endDate = new Date(returnDate);
+    const days = Math.max((endDate - startDate) / (1000 * 60 * 60 * 24), 0);
+
+    const orderData = {
+      nguoiDungId: 1,
+      ngayBatDau: format(rentalDate, "yyyy-MM-dd") + "T08:00:00",
+      ngayKetThuc: format(returnDate, "yyyy-MM-dd") + "T18:00:00",
+      tongTien: totalPrice,
+      trangThai: 0,
+      diaDiemNhanXe: rentalLocation,
+      chiTiet: [
+        {
+          mauXeId: data.mauXeId,
+          soNgayThue: days,
+          thanhTien: totalPrice,
+        },
+      ],
+    };
+
+    try {
+      await ApiDonDat.addDonDatByToken(orderData);
+      toast(`Đã đặt đơn thành công`, {
+        bodyClassName: "text-lg font-semibold",
+        className: "bg-black text-white font-bold p-4 rounded-xl",
+        position: "top-center",
+        autoClose: 500,
+      });
+      message.success("Đơn đặt xe đã được thêm thành công!");
+      onOk();
+    } catch (error) {
+      console.error("Lỗi khi thêm đơn đặt xe:", error);
+      toast(`Đặt đơn thất bại: ${error.response.data.message}`, {
+        bodyClassName: "text-lg font-semibold",
+        className: "bg-black text-white font-bold p-4 rounded-xl",
+        position: "top-center",
+        autoClose: 500,
+      });
+    }
+  };
 
   return (
     <Modal
@@ -55,7 +120,7 @@ const RentalModal = ({
         <button
           key="confirm"
           type="primary"
-          onClick={onOk}
+          onClick={handleConfirm}
           className="bg-[#dd5c36] px-4 py-2 rounded hover:bg-cam hover:scale-110 ml-6 text-white"
         >
           Xác nhận
@@ -87,10 +152,11 @@ const RentalModal = ({
               <label className="block text-[#777777] font-bold mb-2">
                 Ngày nhận xe <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
-                value={rentalDate}
-                onChange={(e) => setRentalDate(e.target.value)}
+              <DatePicker
+                selected={rentalDate}
+                onChange={(date) => setRentalDate(date)}
+                dateFormat="dd/MM/yyyy" // Định dạng DD/MM/YYYY
+                placeholderText="Chọn ngày nhận xe"
                 className="w-full px-3 py-2 border rounded-lg text-[#777777]"
                 required
               />
@@ -99,10 +165,11 @@ const RentalModal = ({
               <label className="block text-[#777777] font-bold mb-2">
                 Ngày trả xe <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
-                value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
+              <DatePicker
+                selected={returnDate}
+                onChange={(date) => setReturnDate(date)}
+                dateFormat="dd/MM/yyyy" // Định dạng DD/MM/YYYY
+                placeholderText="Chọn ngày trả xe"
                 className="w-full px-3 py-2 border rounded-lg text-[#777777]"
                 required
               />
@@ -111,7 +178,7 @@ const RentalModal = ({
 
           <div className="mb-4">
             <label className="block text-[#777777] font-bold mb-2">
-              Số điện thoại 
+              Số điện thoại
             </label>
             <input
               type="tel"
@@ -134,7 +201,6 @@ const RentalModal = ({
             />
           </div>
 
-          {/* Hiển thị giá tiền */}
           <div className="mb-4">
             <label className="block text-[#777777] font-bold mb-2">
               Giá thuê xe 1 ngày

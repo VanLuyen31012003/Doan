@@ -12,7 +12,15 @@ const ApiDonDat = {
     addDonDat: (dondat) => {
         const url = '/dondat/';
         return axiosclient.post(url, dondat);
-    }
+    },
+    addDonDatByToken: (dondat) => {
+        const url = '/dondatxe/adddon';
+        return axiosclient.post(url, dondat);
+    },
+    getDonDatById: (id) => {
+        const url = `/dondatxe/getdon/${id}`;
+        return axiosclient.get(url);
+    }, 
 
 };
 export default ApiDonDat;

@@ -4,6 +4,7 @@ import { MotoContext } from "../Context/MotoContext";
 import { toast } from "react-toastify";
 import RentalModal from "./RentalModal";
 import "react-toastify/dist/ReactToastify.css";
+import { Tag } from "antd";
 
 function Diplayproduct(props) {
   const { data } = props;
@@ -95,7 +96,13 @@ function Diplayproduct(props) {
           </h1>
           <div>
             <p className="font-normal">{data?.moTa}</p>
-          </div>d
+          </div>
+            <Tag
+                        color={data?.soLuongxeconlai > 0 ? "green" : "red"}
+                        className="self-start mb-2"
+                      >
+                        {data?.soLuongxeconlai > 0 ? "Còn hàng" : "Hết hàng"}
+                      </Tag>
           <div className="flex justify-around gap-10 items-center">
             <button
               onClick={handleOrderClick}
@@ -120,7 +127,7 @@ function Diplayproduct(props) {
         onOk={handleModalOk}
         onCancel={handleModalCancel}
         pricePerDay1={data?.giaThueNgay}
-       
+       data={data}
       />
     </div>
   );

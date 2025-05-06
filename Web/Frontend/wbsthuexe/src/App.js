@@ -14,6 +14,7 @@ import { MotoProvider } from './Context/MotoContext';
 import Infouser from './Pages/Infouser';
 import Cart from './Pages/Cart';
 import { ToastContainer } from 'react-toastify';
+import Detailorder from './Pages/Detailorder';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route path='/register' element={<Register />} />
         <Route path='/infouser' element={<Infouser />} />
         <Route path='/yeuthich' element={<Cart />} />
+        <Route path='/chitietdondat/:id' element={<Detailorder />} />
         
       </Routes>
       <ToastContainer

@@ -4,10 +4,7 @@ import com.example.backendoan.Dto.Request.ChiTietRequest;
 import com.example.backendoan.Dto.Request.DonDatXeRequest;
 import com.example.backendoan.Dto.Response.ChiTietDonDatXeReponse;
 import com.example.backendoan.Dto.Response.DonDatXeResponse;
-import com.example.backendoan.Entity.ChiTietDonDatXe;
-import com.example.backendoan.Entity.DonDatXe;
-import com.example.backendoan.Entity.MauXe;
-import com.example.backendoan.Entity.Xe;
+import com.example.backendoan.Entity.*;
 import com.example.backendoan.Enums.TrangThaiXe;
 import com.example.backendoan.Repository.*;
 import lombok.Builder;
@@ -20,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.naming.AuthenticationException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -82,6 +80,7 @@ public class DonDatXeService {
         }).toList();
     }
     public DonDatXeResponse getDonDatXeById(int id) {
+
         return donDatXeRepository.findById(id).map(t -> {
             Integer nguoiDungId = t.getNguoiDungId();
             String tenNguoiDung = (nguoiDungId != null) ? convertTennguoidung(nguoiDungId) : "Không xác định";
@@ -99,6 +98,13 @@ public class DonDatXeService {
         }).orElse(null);
     }
     public DonDatXeResponse addDonDatXe(DonDatXeRequest donDatXe) {
+        // lay thong tin nguoi theo token
+        var context= SecurityContextHolder.getContext();
+        String name=context.getAuthentication().getName();
+        Optional<KhachHang> email =khachHangRepository.findByEmail(name);
+        KhachHang khachHang = email.orElseThrow(() ->
+                new RuntimeException("Không tìm thấy người dùng với email: " + name));
+
         List<ChiTietDonDatXe> chiTietDonDatXes = new ArrayList<>();
         List<Integer> listXeId =new ArrayList<>();
         List<Integer> listMauxeId =new ArrayList<>();
@@ -144,7 +150,7 @@ public class DonDatXeService {
         }
 
         DonDatXe donDatXe1 = DonDatXe.builder()
-                .khachHangId(donDatXe.getKhachHangId())
+                .khachHangId(khachHang.getKhachHangId())
                 .nguoiDungId(donDatXe.getNguoiDungId())
                 .ngayBatDau(donDatXe.getNgayBatDau())
                 .ngayKetThuc(donDatXe.getNgayKetThuc())

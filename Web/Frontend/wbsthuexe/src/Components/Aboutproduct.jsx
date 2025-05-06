@@ -5,11 +5,13 @@ const AboutProduct = (props) => {
   const { data } = props;
   const [thontin, setThongtin] = useState({});
 
-  useEffect(() => {
-    if (data?.thongTinKyThuat) {
-      setThongtin(data.thongTinKyThuat);
-    }
-  }, [data]);
+ useEffect(() => {
+  if (data?.thongTinKyThuat) {
+    setThongtin(data.thongTinKyThuat);
+  } else {
+    setThongtin({}); // Đặt lại state nếu không có thông tin kỹ thuật
+  }
+}, [data]);
 
   return (
     <div className="mx-auto py-8 bg-gray-100 w-full">

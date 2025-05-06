@@ -34,7 +34,21 @@
   -webkit-text-fill-color: transparent;
   animation: fire 12s linear infinite;
 }
-
+/* .firewarn {
+  background: url('https://img.freepik.com/free-photo/color-smoke-abstract-wallpaper-aesthetic-background-design_53876-128237.jpg?semt=ais_hybrid&w=740') repeat-x bottom;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: fire 12s linear infinite;
+}
+@keyframes firewarn {
+  0% {
+    background-position: left;
+  }
+  
+  100% {
+    background-position: right;
+  }
+} */
 @keyframes fire {
   0% {
     background-position: left;
@@ -64,6 +78,9 @@
 
 .shake {
   animation: shake 0.3s ease-in-out;
+}
+.shake_forever {
+  animation: shake 0.3s ease-in-out infinite;
 }
 /* App.css hoặc global.css */
 .Toastify__toast {
