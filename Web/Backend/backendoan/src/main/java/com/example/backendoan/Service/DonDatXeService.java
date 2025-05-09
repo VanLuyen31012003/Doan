@@ -2,11 +2,15 @@ package com.example.backendoan.Service;
 
 import com.example.backendoan.Dto.Request.ChiTietRequest;
 import com.example.backendoan.Dto.Request.DonDatXeRequest;
+import com.example.backendoan.Dto.Request.GiaHanRequest;
 import com.example.backendoan.Dto.Response.ChiTietDonDatXeReponse;
 import com.example.backendoan.Dto.Response.DonDatXeResponse;
 import com.example.backendoan.Entity.*;
+import com.example.backendoan.Enums.PhuongThucThanhToan;
+import com.example.backendoan.Enums.TrangThaiThanhToan;
 import com.example.backendoan.Enums.TrangThaiXe;
 import com.example.backendoan.Repository.*;
+import jakarta.transaction.Transactional;
 import lombok.Builder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.naming.AuthenticationException;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +38,11 @@ public class DonDatXeService {
     private XeRepository xeRepository;
     @Autowired
     private MauXeRepository mauXeRepository;
+    @Autowired
+    private HoaDonGiaHanRepository hoaDonGiaHanRepository;
+    @Autowired
+    private ChiTietDonDatXeRepository chiTietDonDatXeRepository;
+
     public List<Xe> findAvailableXeByMauXeId(Integer mauXeId) {
         if (mauXeId == null || mauXeId <= 0) {
             throw new IllegalArgumentException("MauXeId phải là số dương");
@@ -84,6 +95,18 @@ public class DonDatXeService {
         return donDatXeRepository.findById(id).map(t -> {
             Integer nguoiDungId = t.getNguoiDungId();
             String tenNguoiDung = (nguoiDungId != null) ? convertTennguoidung(nguoiDungId) : "Không xác định";
+            // so tien can thanh toan = tong tien - hoa don gia han voi trang thai thanh toan - tong tien lan dau voi trang thai thanh toan
+            BigDecimal checktongtien = BigDecimal.ZERO;
+            if(t.getTrangThaiThanhToan()== TrangThaiThanhToan.DA_THANH_TOAN.getValue()){
+                checktongtien = t.getTongTienLandau();
+
+            }
+            BigDecimal soTienCanThanhToan = t.getTongTien()
+                    .subtract(hoaDonGiaHanRepository.findByDonDatXeId(t.getDonDatXeId()).stream()
+                            .filter(hoaDon -> hoaDon.getTrangThaiThanhToan() == TrangThaiThanhToan.DA_THANH_TOAN.getValue())
+                            .map(hoaDon -> BigDecimal.valueOf(hoaDon.getTongTienGiaHan())) // Convert Double to BigDecimal
+                            .reduce(BigDecimal.ZERO, BigDecimal::add))
+                    .subtract(checktongtien);
             return new DonDatXeResponse(
                     t.getDonDatXeId(),
                     converTenkhachhang(t.getKhachHangId()),
@@ -93,7 +116,12 @@ public class DonDatXeService {
                     t.getTongTien(),
                     t.getTrangThai(),
                     t.getDiaDiemNhanXe(),
-                    convertchitet(t.getChiTiet())
+                    convertchitet(t.getChiTiet()),
+                    t.getPhuongThucThanhToan(),
+                    t.getTrangThaiThanhToan(),
+                    t.getTongTienLandau(),
+                    hoaDonGiaHanRepository.findByDonDatXeId(t.getDonDatXeId()),
+                    soTienCanThanhToan
             );
         }).orElse(null);
     }
@@ -158,6 +186,9 @@ public class DonDatXeService {
                 .trangThai(donDatXe.getTrangThai())
                 .diaDiemNhanXe(donDatXe.getDiaDiemNhanXe())
                 .chiTiet(chiTietDonDatXes)
+                .tongTienLandau(donDatXe.getTongTien())
+                .phuongThucThanhToan(donDatXe.getPhuongThucThanhToan())
+                .trangThaiThanhToan(TrangThaiThanhToan.CHUA_THANH_TOAN.getValue())
                 .build();
         for (ChiTietDonDatXe chiTiet : chiTietDonDatXes) {
             chiTiet.setDonDatXe(donDatXe1);
@@ -172,7 +203,14 @@ public class DonDatXeService {
                 d.getTongTien(),
                 d.getTrangThai(),
                 d.getDiaDiemNhanXe(),
-                convertchitet(d.getChiTiet())
+                convertchitet(d.getChiTiet()),
+                d.getPhuongThucThanhToan(),
+                d.getTrangThaiThanhToan(),
+                d.getTongTienLandau(),
+                hoaDonGiaHanRepository.findByDonDatXeId(d.getDonDatXeId()),
+                null
+
+
         );
     }
     public DonDatXeResponse updateDonDatXe(int id, DonDatXeRequest donDatXe) {
@@ -198,7 +236,13 @@ public class DonDatXeService {
                 updatedDonDatXe.getTongTien(),
                 updatedDonDatXe.getTrangThai(),
                 updatedDonDatXe.getDiaDiemNhanXe(),
-                convertchitet(updatedDonDatXe.getChiTiet())
+                convertchitet(updatedDonDatXe.getChiTiet()),
+                updatedDonDatXe.getPhuongThucThanhToan(),
+                updatedDonDatXe.getTrangThaiThanhToan(),
+                updatedDonDatXe.getTongTienLandau(),
+                hoaDonGiaHanRepository.findByDonDatXeId(updatedDonDatXe.getDonDatXeId()),
+                null
+
         );
 
     }
@@ -237,5 +281,64 @@ public class DonDatXeService {
                 .tongTien(donDatXe.getTongTien())
                 .trangThai(donDatXe.getTrangThai())
                 .diaDiemNhanXe(donDatXe.getDiaDiemNhanXe()).build()).collect(Collectors.toList());
+    }
+    @Transactional
+    public Double giaHanDonDatXe(Integer donDatXeId, GiaHanRequest giaHanRequest) {
+        DonDatXe donDatXe = donDatXeRepository.findById(donDatXeId)
+                .orElseThrow(() -> new IllegalArgumentException("Đơn không tồn tại"));
+        if (donDatXe.getTrangThai() != 4) {
+            throw new IllegalArgumentException("Đơn chưa đưa  khách không thể gia hạn");
+        }
+
+        List<ChiTietDonDatXe> chiTiet = chiTietDonDatXeRepository.findByDonDatXe_DonDatXeId(donDatXeId);
+        if (chiTiet.isEmpty()) {
+            throw new IllegalArgumentException("Chi tiết đơn không tồn tại");
+        }
+
+        List<Integer> xeIds = chiTiet.stream().map(ChiTietDonDatXe::getXeId).collect(Collectors.toList());
+        LocalDateTime newEndDate = giaHanRequest.getNewEndDate();
+        LocalDateTime currentEndDate = donDatXe.getNgayKetThuc();
+
+        if (newEndDate.isBefore(currentEndDate)) {
+            throw new IllegalArgumentException("Ngày kết thúc mới phải lớn hơn");
+        }
+       for(Integer xeId :xeIds){
+           List<DonDatXe> conflictingBookings = donDatXeRepository.findConflictingBookings(
+                   xeId, currentEndDate, newEndDate);
+           if (!conflictingBookings.isEmpty()) {
+               throw new IllegalArgumentException("xe đã được đặt trước vào thời gian này ");
+           }
+       }
+        long daysExtended = java.time.temporal.ChronoUnit.DAYS.between(currentEndDate, newEndDate);
+       Double tongTienGiaHan =0.0;
+        for (ChiTietDonDatXe chiTiet1 : chiTiet) {
+            Integer xeId = chiTiet1.getXeId();
+            MauXe mauXe =xeRepository.findById(xeId).get().getMauXe();
+            Double giaThueNgay = mauXe.getGiaThueNgay();
+            Double tongTienGiaHanSon = giaThueNgay * daysExtended;
+            tongTienGiaHan += tongTienGiaHanSon;
+        }
+        // Cập nhật trạng thái xe
+
+
+        // Cập nhật đơn đặt xe
+        donDatXe.setNgayKetThuc(newEndDate);
+        BigDecimal tongTienGiaHanDecimal = BigDecimal.valueOf(tongTienGiaHan);
+
+        donDatXe.setTongTien(donDatXe.getTongTien().add(tongTienGiaHanDecimal));
+        donDatXeRepository.save(donDatXe);
+
+        // Tạo hóa đơn gia hạn
+        HoaDonGiaHan hoaDonGiaHan = HoaDonGiaHan.builder()
+                .donDatXeId(donDatXeId)
+                .ngayBatDauGiaHan(currentEndDate)
+                .ngayKetThucGiaHan(newEndDate)
+                .tongTienGiaHan(tongTienGiaHan)
+                .trangThaiThanhToan(0) // Chưa thanh toán
+                .phuongThucThanhToan(null) // Chưa có phương thức
+                .build();
+        hoaDonGiaHanRepository.save(hoaDonGiaHan);
+
+        return tongTienGiaHan;
     }
 }

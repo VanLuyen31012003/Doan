@@ -70,6 +70,14 @@ function Infouser() {
         ) : (
           <TableOrder orders={orders.filter((order)=>order.trangThai===4)}/>
         )}
+        {/* Các đơn đã xác nhận */}
+        <h2 className="text-2xl font-bold text-cam mb-4">Đơn đã xác nhận</h2>
+        {orders.filter((orders)=> orders.trangThai===1).length === 0 ? (
+          <p>Không có đơn nào chờ xác nhận.</p>
+        ) : (
+          <TableOrder orders={orders.filter((order)=>order.trangThai===1)}/>
+        )}
+        
         {/* Các xe đang thuê */}
         <h2 className="text-2xl font-bold text-cam mb-4">Đơn chờ xác nhận</h2>
         {orders.filter((orders)=> orders.trangThai===0).length === 0 ? (

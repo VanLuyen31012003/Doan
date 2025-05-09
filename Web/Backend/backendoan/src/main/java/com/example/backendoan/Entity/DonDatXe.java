@@ -49,4 +49,11 @@ public class DonDatXe {
 
     @OneToMany(mappedBy = "donDatXe", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChiTietDonDatXe> chiTiet = new ArrayList<>();
+
+    @Column(name = "phuong_thuc_thanh_toan")
+    private String phuongThucThanhToan;
+    @Column(name = "trang_thai_thanh_toan")
+    private Integer trangThaiThanhToan ;
+    @Column(name = "tong_tien_landau")
+    private  BigDecimal tongTienLandau;
 }

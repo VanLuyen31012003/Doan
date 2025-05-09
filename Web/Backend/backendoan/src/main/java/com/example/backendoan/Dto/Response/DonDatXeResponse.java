@@ -1,6 +1,7 @@
 package com.example.backendoan.Dto.Response;
 
 import com.example.backendoan.Entity.ChiTietDonDatXe;
+import com.example.backendoan.Entity.HoaDonGiaHan;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -17,9 +18,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DonDatXeResponse {
      Integer donDatXeId;
-//     Integer khachHangId;
      String khachHangName;
-//     Integer nguoiDungId;
      String nguoiDungName;
      LocalDateTime ngayBatDau;
      LocalDateTime ngayKetThuc;
@@ -27,5 +26,10 @@ public class DonDatXeResponse {
      Integer trangThai = 0;
      String diaDiemNhanXe;
      List<ChiTietDonDatXeReponse> chiTiet = new ArrayList<>();
+     String phuongThucThanhToan;
+     Integer trangThaiThanhToan;
+     BigDecimal tongTienLandau;
+     List<HoaDonGiaHan> hoaDonGiaHan;
+     BigDecimal soTienCanThanhToan;
 
 }

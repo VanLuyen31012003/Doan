@@ -23,5 +23,6 @@ public class DonDatXeRequest {
     private BigDecimal tongTien;
     private Integer trangThai = 0;
     private String diaDiemNhanXe;
+    private String phuongThucThanhToan;
     private List<ChiTietRequest> chiTiet = new ArrayList<>();
 }

@@ -1,6 +1,7 @@
 package com.example.backendoan.Controller;
 
 import com.example.backendoan.Dto.Request.DonDatXeRequest;
+import com.example.backendoan.Dto.Request.GiaHanRequest;
 import com.example.backendoan.Dto.Response.ApiResponse;
 import com.example.backendoan.Dto.Response.DonDatXeResponse;
 import com.example.backendoan.Entity.DonDatXe;
@@ -8,8 +9,10 @@ import com.example.backendoan.Entity.Xe;
 import com.example.backendoan.Repository.XeRepository;
 import com.example.backendoan.Service.DonDatXeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -84,5 +87,21 @@ public class DonDatXeController {
             return ResponseEntity.badRequest().body(null);
         }
     }
+    @PostMapping("/giahan/{donDatXeId}")
+    public ApiResponse<Double> giaHanDonDatXe(
+            @PathVariable Integer donDatXeId,
+            @RequestBody GiaHanRequest giaHanRequest) {
+        try {
+            Double tongTienGiaHan = donDatXeService.giaHanDonDatXe(donDatXeId, giaHanRequest);
+            return ApiResponse.<Double>builder()
+                    .success(true)
+                    .message("Gia hạn thành công. Vui lòng thanh toán thêm " + tongTienGiaHan + " VNĐ khi trả xe.")
+                    .data(tongTienGiaHan)
+                    .build();
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
+
 
 }
