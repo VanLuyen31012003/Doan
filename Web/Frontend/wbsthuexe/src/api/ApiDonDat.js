@@ -21,6 +21,10 @@ const ApiDonDat = {
         const url = `/dondatxe/getdon/${id}`;
         return axiosclient.get(url);
     }, 
+    giaHanDonDat: (id, dondat) => {
+        const url = `/dondatxe/giahan/${id}`;
+        return axiosclient.post(url, dondat);
+    },
 
 };
 export default ApiDonDat;

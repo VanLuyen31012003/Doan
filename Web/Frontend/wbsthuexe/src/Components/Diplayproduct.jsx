@@ -67,7 +67,7 @@ function Diplayproduct(props) {
           <img
             src={activeimg}
             alt=""
-            className="w-[100%] max-h-[300px] p-5 rounded-xl"
+            className="w-[100%] max-h-[300px] p-5 rounded-xl object-contain"
           />
           <div className="m-auto w-[50%] gap-2 flex">
             {listimg?.map((item, index) => (

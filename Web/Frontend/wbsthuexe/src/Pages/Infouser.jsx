@@ -64,35 +64,31 @@ function Infouser() {
           </div>
         </div>
         {/* Các đơn đang thuê */}
-        <h2 className="text-2xl font-bold text-cam mb-4">Đơn đang thuê</h2>
         {orders.filter((orders)=> orders.trangThai===4).length === 0 ? (
-          <p>Không có đơn nào chờ xác nhận.</p>
+          <></>
         ) : (
-          <TableOrder orders={orders.filter((order)=>order.trangThai===4)}/>
+          <TableOrder orders={orders.filter((order)=>order.trangThai===4)} name="Đơn đang thuê"/>
         )}
         {/* Các đơn đã xác nhận */}
-        <h2 className="text-2xl font-bold text-cam mb-4">Đơn đã xác nhận</h2>
         {orders.filter((orders)=> orders.trangThai===1).length === 0 ? (
-          <p>Không có đơn nào chờ xác nhận.</p>
+          <></>
         ) : (
-          <TableOrder orders={orders.filter((order)=>order.trangThai===1)}/>
+            <TableOrder orders={orders.filter((order) => order.trangThai === 1)} name={"Đơn đã xác nhận"} />
         )}
         
         {/* Các xe đang thuê */}
-        <h2 className="text-2xl font-bold text-cam mb-4">Đơn chờ xác nhận</h2>
         {orders.filter((orders)=> orders.trangThai===0).length === 0 ? (
-          <p>Không có đơn nào chờ xác nhận.</p>
+          <></>
         ) : (
-          <TableOrder orders={orders.filter((order)=>order.trangThai===0)}/>
+            <TableOrder orders={orders.filter((order) => order.trangThai === 0)} name={"Đơn chờ xác nhận"} />
         )}
 
         {/* Lịch sử đặt xe */}
        
         {orders.filter((orders)=> orders.trangThai===2).length === 0 ? (
-          <p></p>
+          <></>
         ) : (
-            <> <h2 className="text-2xl font-bold text-cam mb-4">Lịch sử đặt xe</h2>
-            <TableOrder orders={orders.filter((orders)=> orders.trangThai===2)} /></>
+            <TableOrder orders={orders.filter((orders)=> orders.trangThai===2)} name={"Lịch sử đặt xe"} />
             
         )}
         
@@ -100,8 +96,7 @@ function Infouser() {
         {orders.filter((orders)=> orders.trangThai===3).length === 0 ? (
           <></>
         ) : (
-            <> <h2 className="text-2xl font-bold text-cam mb-4">Các đơn đã hủy</h2>
-            <TableOrder orders={orders.filter((orders)=> orders.trangThai===3)} /></>
+            <TableOrder orders={orders.filter((orders)=> orders.trangThai===3)} name={"Các đơn đã hủy"} />
                    
         )}
       </div>

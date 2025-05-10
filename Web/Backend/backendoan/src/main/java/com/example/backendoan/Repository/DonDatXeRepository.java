@@ -11,7 +11,7 @@ public interface DonDatXeRepository extends JpaRepository<DonDatXe, Integer> {
     List<DonDatXe> findByKhachHangId(Integer khachHangId);
     List<DonDatXe> findByTrangThai(Integer trangThai);
     @Query("SELECT d FROM DonDatXe d JOIN ChiTietDonDatXe c ON d.donDatXeId = c.donDatXe.donDatXeId " +
-            "WHERE c.xeId = :xeId AND d.trangThai = 1 " +
+            "WHERE c.xeId = :xeId AND d.trangThai IN (1, 0) " +
             "AND ((d.ngayBatDau <= :endDate AND d.ngayKetThuc >= :startDate))")
     List<DonDatXe> findConflictingBookings(Integer xeId, LocalDateTime  startDate, LocalDateTime endDate);
 }

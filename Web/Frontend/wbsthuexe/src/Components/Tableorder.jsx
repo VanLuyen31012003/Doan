@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { IoWarningSharp } from "react-icons/io5";
 
-const TableOrder = ({ orders }) => {
+const TableOrder = ({ orders,name }) => {
   const navigate = useNavigate(); // Hook để điều hướng
 
   const statusMap = {
@@ -16,6 +16,8 @@ const TableOrder = ({ orders }) => {
 
   return (
     <div className="overflow-x-auto">
+      <h2 className="text-2xl font-bold text-cam mb-4">{ name}</h2>
+      
       <table className="w-full border-collapse border border-gray-300 mb-10">
         <thead>
           <tr>

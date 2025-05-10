@@ -125,6 +125,8 @@ public class DonDatXeService {
             );
         }).orElse(null);
     }
+
+    @Transactional
     public DonDatXeResponse addDonDatXe(DonDatXeRequest donDatXe) {
         // lay thong tin nguoi theo token
         var context= SecurityContextHolder.getContext();
@@ -132,45 +134,42 @@ public class DonDatXeService {
         Optional<KhachHang> email =khachHangRepository.findByEmail(name);
         KhachHang khachHang = email.orElseThrow(() ->
                 new RuntimeException("Không tìm thấy người dùng với email: " + name));
+        // Lấy ngày hiện tại
+        LocalDateTime now = LocalDateTime.now();
+
+        // Validate 1: Ngày kết thúc phải lớn hơn ngày bắt đầu
+        if (!donDatXe.getNgayKetThuc().isAfter(donDatXe.getNgayBatDau())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ngày kết thúc phải lớn hơn ngày bắt đầu");
+        }
+
+//        // Validate 2: Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại
+//        if (donDatXe.getNgayBatDau().isBefore(now) && !donDatXe.getNgayBatDau().isEqual(now)) {
+//            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ngày bắt đầu phải lớn hơn hoặc bằng ngày hiện tại");
+//        }
 
         List<ChiTietDonDatXe> chiTietDonDatXes = new ArrayList<>();
-        List<Integer> listXeId =new ArrayList<>();
-        List<Integer> listMauxeId =new ArrayList<>();
-
         for (ChiTietRequest chiTietRequest : donDatXe.getChiTiet())  {
-//            int s=chiTietRequest.getMauXeId();
             List<Xe> availableXeList = findAvailableXeByMauXeId(chiTietRequest.getMauXeId());
             if (availableXeList.isEmpty()) {
-                for(Integer xeid : listXeId){
-                    Xe xe = xeRepository.findById(xeid).get();
-                    xe.setTrangThai(TrangThaiXe.CHUA_THUE.getValue());
-                    xeRepository.save(xe);
-                }
-                // trừ lượt đặt xe cho mẫu xe
-                for (Integer mauXeId : listMauxeId) {
-                    MauXe mauXe = mauXeRepository.findById(mauXeId).get();
-                    mauXe.setSoluotdat(mauXe.getSoluotdat() - 1);
-                    mauXeRepository.save(mauXe);
-                }
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Hết xe đặt cho mẫu xe: " + mauXeRepository.findById(chiTietRequest.getMauXeId()).get().getTenMau()
-                );
-                // trừ lượt đặt xe
-
-
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Không có xe nào khả dụng cho mẫu xe này");
             }
-            //tăng số lượt đặt
+            Xe selectedXe = null;
+            for (Xe xe : availableXeList) {
+                List<DonDatXe>coflictBookings=donDatXeRepository.findConflictingBookings(
+                        xe.getXeId(), donDatXe.getNgayBatDau(), donDatXe.getNgayKetThuc());
+                if (coflictBookings.isEmpty()) {
+                    selectedXe = xe;
+                    break;
+                }
+            }
+            if(selectedXe==null){
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Đã có người đặt xe trước vào thời gian này");
+            }
             MauXe mauXe = mauXeRepository.findById(chiTietRequest.getMauXeId()).get();
             mauXe.setSoluotdat(mauXe.getSoluotdat() + 1);
             mauXeRepository.save(mauXe);
-            listMauxeId.add(chiTietRequest.getMauXeId());
-            Xe xe =findAvailableXeByMauXeId(chiTietRequest.getMauXeId()).get(0);
-            listXeId.add(xe.getXeId());
-            xe.setTrangThai(TrangThaiXe.DA_THUE.getValue());
-            xeRepository.save(xe);
             ChiTietDonDatXe chiTiet = ChiTietDonDatXe.builder()
-                    .xeId(xe.getXeId())
+                    .xeId(selectedXe.getXeId())
                     .soNgayThue(chiTietRequest.getSoNgayThue())
                     .thanhTien(chiTietRequest.getThanhTien())
                     .build();
@@ -194,29 +193,25 @@ public class DonDatXeService {
             chiTiet.setDonDatXe(donDatXe1);
         }
         DonDatXe d = donDatXeRepository.save(donDatXe1);
-        return new DonDatXeResponse(
-                d.getDonDatXeId(),
-                converTenkhachhang(d.getKhachHangId()),
-                convertTennguoidung(d.getNguoiDungId()),
-                d.getNgayBatDau(),
-                d.getNgayKetThuc(),
-                d.getTongTien(),
-                d.getTrangThai(),
-                d.getDiaDiemNhanXe(),
-                convertchitet(d.getChiTiet()),
-                d.getPhuongThucThanhToan(),
-                d.getTrangThaiThanhToan(),
-                d.getTongTienLandau(),
-                hoaDonGiaHanRepository.findByDonDatXeId(d.getDonDatXeId()),
-                null
-
-
-        );
+        return DonDatXeResponse.builder()
+                .donDatXeId(d.getDonDatXeId())
+                .khachHangName(converTenkhachhang(d.getKhachHangId()))
+                .nguoiDungName(convertTennguoidung(d.getNguoiDungId()))
+                .ngayBatDau(d.getNgayBatDau())
+                .ngayKetThuc(d.getNgayKetThuc())
+                .tongTien(d.getTongTien())
+                .trangThai(d.getTrangThai())
+                .diaDiemNhanXe(d.getDiaDiemNhanXe())
+                .chiTiet(convertchitet(d.getChiTiet()))
+                .phuongThucThanhToan(d.getPhuongThucThanhToan())
+                .trangThaiThanhToan(d.getTrangThaiThanhToan())
+                .tongTienLandau(d.getTongTienLandau())
+                .hoaDonGiaHan(hoaDonGiaHanRepository.findByDonDatXeId(d.getDonDatXeId()))
+                .build();
     }
+
     public DonDatXeResponse updateDonDatXe(int id, DonDatXeRequest donDatXe) {
         DonDatXe donDatXe1 = donDatXeRepository.findById(id).get();
-
-
         donDatXe1.setKhachHangId(donDatXe.getKhachHangId());
         donDatXe1.setNguoiDungId(donDatXe.getNguoiDungId());
         donDatXe1.setNgayBatDau(donDatXe.getNgayBatDau());
@@ -287,12 +282,17 @@ public class DonDatXeService {
         DonDatXe donDatXe = donDatXeRepository.findById(donDatXeId)
                 .orElseThrow(() -> new IllegalArgumentException("Đơn không tồn tại"));
         if (donDatXe.getTrangThai() != 4) {
-            throw new IllegalArgumentException("Đơn chưa đưa  khách không thể gia hạn");
+            throw new IllegalArgumentException("Đơn chưa thuê  khách không thể gia hạn");
         }
 
         List<ChiTietDonDatXe> chiTiet = chiTietDonDatXeRepository.findByDonDatXe_DonDatXeId(donDatXeId);
         if (chiTiet.isEmpty()) {
             throw new IllegalArgumentException("Chi tiết đơn không tồn tại");
+        }
+        //lay danh sach cac gia han
+        List<HoaDonGiaHan> hoaDonGiaHans = hoaDonGiaHanRepository.findByDonDatXeId(donDatXeId);
+        if (hoaDonGiaHans != null && !hoaDonGiaHans.isEmpty()) {
+                    throw new IllegalArgumentException("Không thể gia hạn thêm, vui lòng hoàn trả xe đúng thời hạn");
         }
 
         List<Integer> xeIds = chiTiet.stream().map(ChiTietDonDatXe::getXeId).collect(Collectors.toList());

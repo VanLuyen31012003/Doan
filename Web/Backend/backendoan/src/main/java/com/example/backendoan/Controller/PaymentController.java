@@ -1,7 +1,10 @@
 package com.example.backendoan.Controller;
 
 import com.example.backendoan.Configuration.Vnpayconfig;
+import com.example.backendoan.Entity.DonDatXe;
+import com.example.backendoan.Repository.DonDatXeRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +23,8 @@ import java.util.*;
 @RestController
 @RequestMapping("/payment")
 public class PaymentController {
+    @Autowired
+    DonDatXeRepository donDatXeRepository;
     @GetMapping("/api/payment/create")
     public ResponseEntity<?> createPayment(HttpServletRequest request,
                                             @RequestParam("amount") String amount,
@@ -93,7 +98,6 @@ public class PaymentController {
 
         String vnpSecureHash = vnpParams.remove("vnp_SecureHash");
 
-        // Bước 1: Sắp xếp tham số theo thứ tự alphabet
         List<String> fieldNames = new ArrayList<>(vnpParams.keySet());
         Collections.sort(fieldNames);
 
@@ -107,23 +111,52 @@ public class PaymentController {
             }
         }
 
-        // Bước 2: Tạo chuỗi hash với HMAC SHA512
         String secureHash = hmacSHA512(Vnpayconfig.vnp_HashSecret, hashData.toString());
 
-        // Bước 3: So sánh hash để xác thực dữ liệu
+        String frontendUrl = Vnpayconfig.frontendUrl;
+        String redirectUrl;
+
         if (secureHash.equals(vnpSecureHash)) {
             String responseCode = vnpParams.get("vnp_ResponseCode");
+            String txnRef = vnpParams.get("vnp_TxnRef");
+            String amount = vnpParams.get("vnp_Amount"); // Số tiền (đơn vị: VND, chia cho 100)
+            String transactionDate = vnpParams.get("vnp_PayDate"); // Ngày giao dịch
+            // Giả sử bạn có cách lấy username từ DonDatXe hoặc hệ thống
+            String username = "unknown"; // Thay bằng logic lấy username nếu có
+
             if ("00".equals(responseCode)) {
-                // Thanh toán thành công
-                return ResponseEntity.ok("Thanh toán thành công");
+                DonDatXe donDatXe = donDatXeRepository.findById(Integer.parseInt(txnRef))
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+                donDatXe.setTrangThaiThanhToan(1);
+                donDatXeRepository.save(donDatXe);
+                redirectUrl = String.format("%s?status=success&message=%s&txnRef=%s&amount=%s&transactionDate=%s&username=%s",
+                        frontendUrl,
+                        URLEncoder.encode("Thanh toán thành công", StandardCharsets.UTF_8),
+                        txnRef,
+                        amount != null ? amount : "",
+                        URLEncoder.encode(transactionDate != null ? transactionDate : "", StandardCharsets.UTF_8),
+                        URLEncoder.encode(username, StandardCharsets.UTF_8));
             } else {
-                // Thanh toán thất bại
-                return ResponseEntity.ok("Thanh toán thất bại với mã lỗi: " + responseCode);
+                DonDatXe donDatXe = donDatXeRepository.findById(Integer.parseInt(txnRef))
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+                donDatXeRepository.delete(donDatXe);
+                redirectUrl = String.format("%s?status=error&message=%s&txnRef=%s&amount=%s&transactionDate=%s&username=%s",
+                        frontendUrl,
+                        URLEncoder.encode("Thanh toán thất bại với mã lỗi: " + responseCode, StandardCharsets.UTF_8),
+                        txnRef,
+                        amount != null ? amount : "",
+                        URLEncoder.encode(transactionDate != null ? transactionDate : "", StandardCharsets.UTF_8),
+                        URLEncoder.encode(username, StandardCharsets.UTF_8));
             }
         } else {
-            // Dữ liệu không hợp lệ
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Dữ liệu không hợp lệ");
+            redirectUrl = String.format("%s?status=error&message=%s",
+                    frontendUrl,
+                    URLEncoder.encode("Dữ liệu không hợp lệ", StandardCharsets.UTF_8));
         }
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header("Location", redirectUrl)
+                .body("Redirecting to frontend...");
     }
 
 
