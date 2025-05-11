@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Xác nhận đặt xe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 80%;
+            max-width: 600px; /* Giới hạn tối đa để email không quá rộng */
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            word-break: break-word; /* Cho phép ngắt từ khi văn bản dài */
+            overflow-wrap: break-word; /* Xử lý ngắt từ trong email client */
+        }
+        h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        h3 {
+            color: #34495e;
+        }
+        p {
+            margin: 10px 0;
+            word-break: break-word; /* Đảm bảo p cũng ngắt dòng */
+        }
+        .highlight {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .detail-box {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            word-break: break-word;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #ddd;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #777;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">
+        <img src="https://firebasestorage.googleapis.com/v0/b/vocabtoeic-23b22.appspot.com/o/MOTO_VIP.png?alt=media&token=d62496c8-d589-4545-b172-aa68b972c713" alt="Logo" style="max-width: 150px;" />
+    </div>
+    <h2>Xác nhận đặt xe thành công</h2>
+    <p>Cảm ơn bạn đã đặt xe tại hệ thống của chúng tôi!</p>
+
+    <h3>Thông tin đơn đặt xe</h3>
+    <p><span class="highlight">Mã đơn:</span> <span th:text="${donDatXe.donDatXeId}"></span></p>
+    <p><span class="highlight">Ngày bắt đầu:</span>
+        <span th:text="${#temporals.format(donDatXe.ngayBatDau, 'yyyy-MM-dd')} ?: 'Chưa xác định'"></span>
+    </p>
+    <p><span class="highlight">Ngày kết thúc:</span>
+        <span th:text="${#temporals.format(donDatXe.ngayKetThuc, 'yyyy-MM-dd')} ?: 'Chưa xác định'"></span>
+    </p>
+    <p><span class="highlight">Tổng tiền:</span> <span th:text="${donDatXe.tongTien}"></span> VNĐ</p>
+    <p><span class="highlight">Trạng thái:</span>
+        <span th:if="${donDatXe.trangThai == 0}">Chờ xác nhận</span>
+    </p>
+    <p><span class="highlight">Địa điểm nhận xe:</span> <span th:text="${donDatXe.diaDiemNhanXe}"></span></p>
+    <p><span class="highlight">Phương thức thanh toán:</span> <span th:text="${donDatXe.phuongThucThanhToan} ?: 'Chưa chọn'"></span></p>
+    <p><span class="highlight">Trạng thái thanh toán:</span>
+        <span th:switch="${donDatXe.trangThaiThanhToan}">
+        <span th:case="0">Chưa thanh toán</span>
+        <span th:case="1">Đã thanh toán</span>
+        <span th:case="*">Không xác định</span>
+    </span>
+    </p>
+
+    <h3>Chi tiết xe</h3>
+    <div th:each="chiTiet : ${chiTietDonDatXes}" class="detail-box">
+        <p><span class="highlight">Xe ID:</span> <span th:text="${chiTiet.xeId}"></span></p>
+        <p><span class="highlight">Số ngày thuê:</span> <span th:text="${chiTiet.soNgayThue}"></span></p>
+        <p><span class="highlight">Thành tiền:</span> <span th:text="${chiTiet.thanhTien}"></span> VNĐ</p>
+    </div>
+
+    <hr>
+
+    <p>Vui lòng liên hệ chúng tôi nếu bạn cần hỗ trợ thêm.</p>
+    <p class="highlight">Gmail: MotoVip@gmail.com</p>
+    <p class="highlight">Số điện thoại: 0948310103</p>
+
+
+    <div class="footer highlight">
+        <p class="highlight">Trân trọng,<br>Hệ thống đặt xe MoVip</p>
+    </div>
+</div>
+</body>
+</html>

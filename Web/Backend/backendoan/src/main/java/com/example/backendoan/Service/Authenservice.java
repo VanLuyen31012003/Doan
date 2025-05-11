@@ -40,12 +40,12 @@ public class Authenservice {
     private KhachHangRepository khachHangRepository;
     @NonFinal
     @Value("${jwt.secret}")
-    protected  String SIGNER_KEY ;
+    protected String SIGNER_KEY;
 //            "1TjXchw5FloeSb63Kc+DFhtARvpWL4jUGCwfGWxuG5SIf/1y/LgJxHnMqaF6A/ij";
 
-    public AuthenResponse authenticatekhach ( AuthenRequest authenRequest) {
+    public AuthenResponse authenticatekhach(AuthenRequest authenRequest) {
         try {
-            if(khachHangRepository.findByEmail(authenRequest.getUsername()) != null) {
+            if (khachHangRepository.findByEmail(authenRequest.getUsername()) != null) {
                 KhachHang khachHang = khachHangRepository.findByEmail(authenRequest.getUsername()).get();
                 if (khachHang.getMatKhau().equals(authenRequest.getPassword())) {
                     var token = generateTokenkhachhang(khachHang);
@@ -53,91 +53,92 @@ public class Authenservice {
                             token(token).
                             authenticated(true).
                             build();
-                }
-                else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
-            }
-            else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
-        }catch (Exception e) {
+                } else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
+            } else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
+        } catch (Exception e) {
             return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
         }
     }
-    public AuthenResponse authenticate( AuthenRequest authenRequest) {
+
+    public AuthenResponse authenticate(AuthenRequest authenRequest) {
         try {
-            if(nguoiDungRepository.findByEmail(authenRequest.getUsername()) != null) {
-                NguoiDung taiKhoan =nguoiDungRepository.findByEmail(authenRequest.getUsername()).get();
+            if (nguoiDungRepository.findByEmail(authenRequest.getUsername()) != null) {
+                NguoiDung taiKhoan = nguoiDungRepository.findByEmail(authenRequest.getUsername()).get();
                 if (taiKhoan.getMat_khau().equals(authenRequest.getPassword())) {
                     var token = generateToken(taiKhoan);
                     return AuthenResponse.builder().
                             token(token).
                             authenticated(true).
                             build();
-                }
-                else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
-            }
-            else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
-        }catch (Exception e) {
+                } else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
+            } else return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
+        } catch (Exception e) {
             return AuthenResponse.builder().authenticated(false).token("lỗi ").build();
         }
     }
-    public IntrospctReponse introspctReponse (IntrospectRequest introspcRequest)
+
+    public IntrospctReponse introspctReponse(IntrospectRequest introspcRequest)
             throws JOSEException, ParseException {
         var token = introspcRequest.getToken();
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
         Date expityTime = signedJWT.getJWTClaimsSet().getExpirationTime();
-        var verified= signedJWT.verify(verifier);
+        var verified = signedJWT.verify(verifier);
         return IntrospctReponse.builder()
-                .valid( verified && expityTime.after(new Date()))
+                .valid(verified && expityTime.after(new Date()))
                 .build();
     }
-    private String generateToken(NguoiDung nguoiDung){
+
+    private String generateToken(NguoiDung nguoiDung) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(nguoiDung.getEmail())
-                .issuer("from "+nguoiDung.getEmail())
+                .issuer("from " + nguoiDung.getEmail())
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(100000, ChronoUnit.HOURS).toEpochMilli()
                 ))
-                .claim("scope",buildScope(nguoiDung))
+                .claim("scope", buildScope(nguoiDung))
                 .build();
-        Payload payload =new Payload(jwtClaimsSet.toJSONObject());
-        JWSObject jwsObject =new JWSObject(header,payload);
+        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+        JWSObject jwsObject = new JWSObject(header, payload);
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
-            log.error("lỗi tạo token",e);
+            log.error("lỗi tạo token", e);
             throw new RuntimeException(e);
 
         }
     }
-    private  String buildScope(NguoiDung nguoiDung ){
+
+    private String buildScope(NguoiDung nguoiDung) {
         StringJoiner stringJoiner = new StringJoiner(",");
-        if(!CollectionUtils.isEmpty(nguoiDung.getVai_tro()))
+        if (!CollectionUtils.isEmpty(nguoiDung.getVai_tro()))
             nguoiDung.getVai_tro().forEach(stringJoiner::add);
         return stringJoiner.toString();
 
     }
-    private String generateTokenkhachhang(KhachHang khachHang){
+
+    private String generateTokenkhachhang(KhachHang khachHang) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(khachHang.getEmail())
-                .issuer("from "+khachHang.getEmail())
+                .issuer("from " + khachHang.getEmail())
                 .issueTime(new Date())
                 .expirationTime(new Date(
                         Instant.now().plus(100000, ChronoUnit.HOURS).toEpochMilli()
                 ))
-                .claim("scope","CUSTOMER")
+                .claim("scope", "CUSTOMER")
                 .build();
-        Payload payload =new Payload(jwtClaimsSet.toJSONObject());
-        JWSObject jwsObject =new JWSObject(header,payload);
+        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+        JWSObject jwsObject = new JWSObject(header, payload);
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
             return jwsObject.serialize();
         } catch (JOSEException e) {
-            log.error("lỗi tạo token",e);
+            log.error("lỗi tạo token", e);
             throw new RuntimeException(e);
 
         }

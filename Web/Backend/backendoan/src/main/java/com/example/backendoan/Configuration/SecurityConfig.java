@@ -35,7 +35,7 @@ public class SecurityConfig {
     private final String [] Public_EnpointGet={"/mauxe/images/**","/nguoidung/getallnguoidung",
             "/mauxe/getallmauxe","/mauxe/gettop10mauxe","/mauxe/getmauxe/**","/mauxe/search",
             "/mauxe/getmauxetheoloaixe/**","/danhgia/getalldanhgiabyid/**","/payment/api/payment/create"
-            ,"/payment/api/payment/vnpay-return"
+            ,"/payment/api/payment/vnpay-return","/auth/testmail"
     };
 
     @Bean

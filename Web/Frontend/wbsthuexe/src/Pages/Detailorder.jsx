@@ -81,7 +81,12 @@ function Detailorder() {
       return;
     }
     try {
-      const formattedDate = newEndDate.toISOString().slice(0, 19);
+      const adjustedDate = new Date(newEndDate);
+    adjustedDate.setHours(23, 59, 59, 0); // Đặt giờ, phút, giây, và mili giây
+
+    // Chuyển đổi sang định dạng YYYY-MM-DDTHH:mm:ss
+    const formattedDate = adjustedDate.toISOString().slice(0, 19); // Lấy định dạng YYYY-MM-DDTHH:mm:ss
+
       const datasend = {
         newEndDate: formattedDate,
         // Nếu backend cần số tiền gia hạn, bạn có thể thêm vào đây
@@ -315,7 +320,7 @@ function Detailorder() {
               <DatePicker
                 selected={newEndDate}
                 onChange={(date) => setNewEndDate(date)}
-                minDate={ today}
+                minDate={ ngayKetThuc}
                 dateFormat="yyyy-MM-dd"
                 className="w-full p-2 border border-gray-300 rounded"
                 placeholderText="Chọn ngày"

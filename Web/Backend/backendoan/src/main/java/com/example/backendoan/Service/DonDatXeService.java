@@ -10,13 +10,20 @@ import com.example.backendoan.Enums.PhuongThucThanhToan;
 import com.example.backendoan.Enums.TrangThaiThanhToan;
 import com.example.backendoan.Enums.TrangThaiXe;
 import com.example.backendoan.Repository.*;
+import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.ILoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 
 import javax.naming.AuthenticationException;
 import java.math.BigDecimal;
@@ -26,6 +33,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class DonDatXeService {
     @Autowired
@@ -42,6 +50,8 @@ public class DonDatXeService {
     private HoaDonGiaHanRepository hoaDonGiaHanRepository;
     @Autowired
     private ChiTietDonDatXeRepository chiTietDonDatXeRepository;
+    @Autowired
+    private MailService mailService;
 
     public List<Xe> findAvailableXeByMauXeId(Integer mauXeId) {
         if (mauXeId == null || mauXeId <= 0) {
@@ -193,7 +203,16 @@ public class DonDatXeService {
             chiTiet.setDonDatXe(donDatXe1);
         }
         DonDatXe d = donDatXeRepository.save(donDatXe1);
-        return DonDatXeResponse.builder()
+        if(d.getPhuongThucThanhToan().equals(PhuongThucThanhToan.TIEN_MAT.getValue())){
+            try {
+                mailService.sendBookingConfirmationEmail(khachHang.getEmail(), d, chiTietDonDatXes);
+            } catch (MessagingException e) {
+                log.error("Failed to send booking confirmation email: {}", e.getMessage());
+                throw new RuntimeException("Unable to send confirmation email", e);
+            }
+
+        }
+              return DonDatXeResponse.builder()
                 .donDatXeId(d.getDonDatXeId())
                 .khachHangName(converTenkhachhang(d.getKhachHangId()))
                 .nguoiDungName(convertTennguoidung(d.getNguoiDungId()))
@@ -282,7 +301,7 @@ public class DonDatXeService {
         DonDatXe donDatXe = donDatXeRepository.findById(donDatXeId)
                 .orElseThrow(() -> new IllegalArgumentException("Đơn không tồn tại"));
         if (donDatXe.getTrangThai() != 4) {
-            throw new IllegalArgumentException("Đơn chưa thuê  khách không thể gia hạn");
+            throw new IllegalArgumentException("Bạn không thể gia hạn đơn khi mà đơn chưa ở trạng thái đang thuê");
         }
 
         List<ChiTietDonDatXe> chiTiet = chiTietDonDatXeRepository.findByDonDatXe_DonDatXeId(donDatXeId);
@@ -300,13 +319,13 @@ public class DonDatXeService {
         LocalDateTime currentEndDate = donDatXe.getNgayKetThuc();
 
         if (newEndDate.isBefore(currentEndDate)) {
-            throw new IllegalArgumentException("Ngày kết thúc mới phải lớn hơn");
+            throw new IllegalArgumentException("Ngày kết thúc mới phải lớn hơn ngày kết thúc hiện tại");
         }
        for(Integer xeId :xeIds){
            List<DonDatXe> conflictingBookings = donDatXeRepository.findConflictingBookings(
                    xeId, currentEndDate, newEndDate);
            if (!conflictingBookings.isEmpty()) {
-               throw new IllegalArgumentException("xe đã được đặt trước vào thời gian này ");
+               throw new IllegalArgumentException("Xe đã được đặt trước vào khoảng thời gian này ");
            }
        }
         long daysExtended = java.time.temporal.ChronoUnit.DAYS.between(currentEndDate, newEndDate);
