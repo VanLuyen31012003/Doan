@@ -15,6 +15,7 @@ import ManageOrders from '../Components/ManageOrders/ManageOrders';
 import ManageMoney from '../Components/ManageMoney/ManageMoney';
 import { removeToken } from '../Lib/authenticate';
 import ManageUsers from '../Components/ManageUsers/ManageUsers';
+import ManageXe from '../Components/ManageXe/ManageXe';
 
 const { Header, Sider, Content } = Layout;
 
@@ -23,15 +24,6 @@ const DashboardContent = () => (
   <div>
     <h3>Dashboard Overview</h3>
     <p>Thống kê và báo cáo tổng quan</p>
-  </div>
-);
-
-
-
-const UsersContent = () => (
-  <div>
-    <h3>Quản lý người dùng</h3>
-    <p>Danh sách người dùng và thông tin tài khoản</p>
   </div>
 );
 const Dashboard = () => {
@@ -60,7 +52,7 @@ const Dashboard = () => {
       case 'orders':
         return <ManageOrders />;
       case 'xe':
-        return <ManageMauxe />;
+        return <ManageXe />;
       case 'doanhthu':
         return <ManageMoney />;
       default:

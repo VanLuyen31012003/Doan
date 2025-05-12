@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Input, Button, Space, Tag, Modal, Form, Select, message, Typography, Popconfirm } from 'antd';
 import { SearchOutlined, UserAddOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
-import axios from 'axios';
 import ApiNguoiDung from '../../Api/ApiNguoiDung';
 
 const { Title } = Typography;
