@@ -102,6 +102,13 @@ public class DonDatXeController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+    @GetMapping("/getdonbyidxe/{id}")
+    public ApiResponse<List<DonDatXeResponse>> getDonDatXeByIdXe(@PathVariable int id) {
+        return ApiResponse.<List<DonDatXeResponse>>builder()
+                        .message("Lấy danh sách đơn đặt xe theo xe thành công")
+                        .data(donDatXeService.getalldondatbyidxe(id))
+                        .build();
+    }
 
 
 

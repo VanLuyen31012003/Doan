@@ -35,8 +35,9 @@ public class MauXe {
     private int loaiXeId;
     @Column(name = "gia_thue_ngay", nullable = false)
     private Double giaThueNgay;
-    @Column(name = "mo_ta")
+    @Column(name = "mo_ta",columnDefinition = "TEXT")
     private String moTa;
     private String anhdefault;
     private Integer soluotdat;
+
 }

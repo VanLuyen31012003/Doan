@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Card, Button, Tag, Space, Input, Modal, Form, Select, DatePicker, Image, message, Typography, Popconfirm } from 'antd';
-import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, DeleteOutlined, SearchOutlined, EyeOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import moment from 'moment';
+import ApiXe from '../../Api/ApiXe';
+import { toast } from 'react-toastify';
+import VehicleOrderModal from './VehicleOrderModal';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -15,6 +18,8 @@ const ManageXe = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentVehicle, setCurrentVehicle] = useState(null);
   const [modelList, setModelList] = useState([]);
+  const [isOrderModalVisible, setIsOrderModalVisible] = useState(false);
+  const [selectedXeId, setSelectedXeId] = useState(null);
   const [form] = Form.useForm();
 
   // Trạng thái xe
@@ -29,7 +34,7 @@ const ManageXe = () => {
   const fetchVehicles = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:8080/xe/getallxe');
+      const response = await ApiXe.getAllXe();
       if (response.data.success) {
         setVehicles(response.data.data);
       } else {
@@ -46,7 +51,7 @@ const ManageXe = () => {
   // Fetch danh sách mẫu xe
   const fetchModels = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/mauxe/getallmauxe');
+      const response = await axios.get('http://localhost:8080/mauxe/getallmauxe?page=0&size=30');
       if (response.data.success) {
         setModelList(response.data.data.content || []);
       } else {
@@ -94,6 +99,12 @@ const ManageXe = () => {
     setIsModalVisible(true);
   };
 
+  // Mở modal chi tiết đơn đặt xe
+  const showOrderModal = (xeId) => {
+    setSelectedXeId(xeId);
+    setIsOrderModalVisible(true);
+  };
+
   // Đóng modal
   const handleCancel = () => {
     setIsModalVisible(false);
@@ -112,32 +123,30 @@ const ManageXe = () => {
       };
 
       if (isEditMode) {
-        // Cập nhật xe
-        await axios.put(`http://localhost:8080/xe/updatexe/${currentVehicle.xeId}`, submissionData);
-        message.success('Cập nhật xe thành công');
+        await ApiXe.updateXe(currentVehicle.xeId, submissionData);
+        toast.success('Cập nhật xe thành công');
       } else {
-        // Thêm xe mới
-        await axios.post('http://localhost:8080/xe/themxe', submissionData);
-        message.success('Thêm xe mới thành công');
+        await ApiXe.createXe(submissionData);
+        toast.success('Thêm xe mới thành công');
       }
 
       setIsModalVisible(false);
-      fetchVehicles(); // Refresh danh sách
+      fetchVehicles();
     } catch (error) {
       console.error('Submission error:', error);
-      message.error('Có lỗi xảy ra khi lưu thông tin xe');
+      toast.error('Failure: ' + error.response.data.message);
     }
   };
 
   // Xóa xe
   const deleteVehicle = async (id) => {
     try {
-      await axios.delete(`http://localhost:8080/xe/xoaxe/${id}`);
-      message.success('Xóa xe thành công');
-      fetchVehicles(); // Refresh danh sách
+      await ApiXe.deleteXe(id);
+      toast.success("Đã xóa xe thành công");
+      fetchVehicles();
     } catch (error) {
       console.error('Delete error:', error);
-      message.error('Không thể xóa xe');
+      toast.error('Fail:' + error.response.data.message);
     }
   };
 
@@ -221,6 +230,14 @@ const ManageXe = () => {
       key: 'action',
       render: (_, record) => (
         <Space size="small">
+          <Button
+            type="primary"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => showOrderModal(record.xeId)}
+          >
+            Chi tiết
+          </Button>
           <Button
             type="primary"
             icon={<EditOutlined />}
@@ -343,6 +360,13 @@ const ManageXe = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Modal danh sách đơn đặt xe */}
+      <VehicleOrderModal
+        visible={isOrderModalVisible}
+        xeId={selectedXeId}
+        onClose={() => setIsOrderModalVisible(false)}
+      />
     </Card>
   );
 };

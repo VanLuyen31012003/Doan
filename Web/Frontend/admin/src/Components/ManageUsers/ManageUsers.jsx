@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Table, Card, Input, Button, Space, Tag, Modal, Form, Select, message, Typography, Popconfirm } from 'antd';
 import { SearchOutlined, UserAddOutlined, EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import ApiNguoiDung from '../../Api/ApiNguoiDung';
+import { toast } from 'react-toastify';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -20,14 +21,12 @@ const ManageUsers = () => {
   const rolesOptions = [
     { label: 'Admin', value: 'ADMIN' },
     { label: 'User', value: 'USER' },
-    { label: 'Chủ xe', value: 'CHU_XE' }
   ];
 
   // Fetch users data
   const fetchUsers = async () => {
     setLoading(true);
     try {
-        // const response = await axios.get('http://localhost:8080/nguoidung/getallnguoidung');
         const response= await ApiNguoiDung.getAllNguoiDung();
       if (response.data.success) {
         const usersWithKey = response.data.data.map((user, index) => ({ 
@@ -115,37 +114,51 @@ const ManageUsers = () => {
           }
           return user;
         });
-        
+        const newUser = {
+          ...values,
+          vai_tro: values.vai_tro || []
+        };   
+        await ApiNguoiDung.updateNguoiDung(currentUser.email, newUser)
         setUsers(updatedUsers);
-        message.success('Người dùng đã được cập nhật');
+        toast.success('Người dùng đã được cập nhật');
       } else {
         // Create new user
         // This is where you would call your create API
         // For now, we'll add to the local state as an example
         const newUser = {
           ...values,
-          key: users.length,
           vai_tro: values.vai_tro || []
-        };
-        
+        };   
+        await ApiNguoiDung.createNguoiDung(newUser)
         setUsers([...users, newUser]);
-        message.success('Người dùng mới đã được tạo');
+        // console.log('New user created:', newUser);
+        toast.success('Người dùng mới đã được tạo');
       }
       
       setIsModalVisible(false);
       form.resetFields();
     } catch (error) {
-      console.error('Form validation failed:', error);
+      console.log('Form validation failed:', error);
+      toast.error('Form validation failed:', error.response.data.message);
     }
   };
 
   // Handle user deletion
-  const handleDeleteUser = (user) => {
+  const handleDeleteUser =async (user) => {
     // This is where you would call your delete API
     // For now, we'll remove from the local state as an example
     const updatedUsers = users.filter(u => u.key !== user.key);
     setUsers(updatedUsers);
-    message.success('Đã xóa người dùng');
+    try {
+      
+      await ApiNguoiDung.deleteNguoiDung(user.email)
+      toast.success('Xóa người dùng thành công');
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast.error('Thất bại', error.response.data.message);
+      
+    }
+    
   };
 
   // Filter by role
@@ -204,7 +217,6 @@ const ManageUsers = () => {
       filters: [
         { text: 'Admin', value: 'ADMIN' },
         { text: 'User', value: 'USER' },
-        { text: 'Chủ xe', value: 'CHU_XE' }
       ],
       onFilter: (value, record) => record.vai_tro.includes(value)
     },
@@ -265,7 +277,6 @@ const ManageUsers = () => {
             <Option value="ALL">Tất cả</Option>
             <Option value="ADMIN">Admin</Option>
             <Option value="USER">User</Option>
-            <Option value="CHU_XE">Chủ xe</Option>
           </Select>
         </Space>
         <Button

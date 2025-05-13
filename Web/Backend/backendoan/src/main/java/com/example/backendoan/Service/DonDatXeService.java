@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.ILoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -228,17 +229,15 @@ public class DonDatXeService {
                 .hoaDonGiaHan(hoaDonGiaHanRepository.findByDonDatXeId(d.getDonDatXeId()))
                 .build();
     }
-
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public DonDatXeResponse updateDonDatXe(int id, DonDatXeRequest donDatXe) {
+        var context= SecurityContextHolder.getContext();
+        String name=context.getAuthentication().getName();
+        NguoiDung nguoiDung = nguoiDungRepository.findByEmail(name).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng với email: " + name));
         DonDatXe donDatXe1 = donDatXeRepository.findById(id).get();
-        donDatXe1.setKhachHangId(donDatXe.getKhachHangId());
-        donDatXe1.setNguoiDungId(donDatXe.getNguoiDungId());
-        donDatXe1.setNgayBatDau(donDatXe.getNgayBatDau());
-        donDatXe1.setNgayKetThuc(donDatXe.getNgayKetThuc());
-        donDatXe1.setTongTien(donDatXe.getTongTien());
+        donDatXe1.setNguoiDungId(nguoiDung.getNguoi_dung_id());
         donDatXe1.setTrangThai(donDatXe.getTrangThai());
-        donDatXe1.setDiaDiemNhanXe(donDatXe.getDiaDiemNhanXe());
-
         DonDatXe updatedDonDatXe = donDatXeRepository.save(donDatXe1);
 
         return new DonDatXeResponse(
@@ -359,5 +358,23 @@ public class DonDatXeService {
         hoaDonGiaHanRepository.save(hoaDonGiaHan);
 
         return tongTienGiaHan;
+    }
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    public List<DonDatXeResponse> getalldondatbyidxe(int id) {
+        Xe xe = xeRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy xe với id: " + id));
+        List<DonDatXe> donDatXeList = chiTietDonDatXeRepository.findDonDatXeByXeId(id);
+        return donDatXeList.stream().map(donDatXe -> DonDatXeResponse.builder()
+                .donDatXeId(donDatXe.getDonDatXeId())
+                .khachHangName(converTenkhachhang(donDatXe.getKhachHangId()))
+//                .nguoiDungName(convertTennguoidung(donDatXe.getNguoiDungId()))
+                .ngayBatDau(donDatXe.getNgayBatDau())
+                .ngayKetThuc(donDatXe.getNgayKetThuc())
+                .tongTien(donDatXe.getTongTien())
+                .trangThai(donDatXe.getTrangThai())
+                .diaDiemNhanXe(donDatXe.getDiaDiemNhanXe())
+//                .chiTiet(convertchitet(donDatXe.getChiTiet()))
+                .build()).collect(Collectors.toList());
+
     }
 }

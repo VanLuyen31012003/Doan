@@ -1,5 +1,6 @@
 package com.example.backendoan.Controller;
 
+import com.example.backendoan.Dto.Request.XeRequest;
 import com.example.backendoan.Dto.Response.ApiResponse;
 import com.example.backendoan.Entity.HangXe;
 import com.example.backendoan.Entity.LoaiXe;
@@ -7,10 +8,7 @@ import com.example.backendoan.Entity.Xe;
 import com.example.backendoan.Service.XeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -43,6 +41,28 @@ public class XeController {
         return ApiResponse.<List<LoaiXe>>builder()
                 .message("Lấy danh sách xe thành công")
                 .data(xeService.getAllLoaiXe())
+                .build();
+    }
+    @DeleteMapping("/deletexe/{id}")
+    public ApiResponse<String> deleteXe(@PathVariable int id) {
+        xeService.deleteXe(id);
+        return ApiResponse.<String>builder()
+                .message("Xóa xe thành công")
+                .data("Xóa xe thành công")
+                .build();
+    }
+    @PutMapping("/updatexe/{id}")
+    public ApiResponse<Xe> updateXe(@RequestBody XeRequest xe, @PathVariable int id) {
+        return ApiResponse.<Xe>builder()
+                .message("Cập nhật xe thành công")
+                .data(xeService.updateXe(xe, id))
+                .build();
+    }
+    @PostMapping("/addxe")
+    public ApiResponse<Xe>addXe(@RequestBody XeRequest xe) {
+        return ApiResponse.<Xe>builder()
+                .message("Thêm xe thành công")
+                .data(xeService.addXe(xe))
                 .build();
     }
 

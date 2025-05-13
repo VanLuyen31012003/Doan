@@ -57,6 +57,22 @@
                     .data(nguoi_dungService.addnguoidung(nguoiDungRequest))
                     .build();
         }
+        @DeleteMapping("/deletenguoidung/{id}")
+        public ApiResponse<String> deleteNguoiDung(@PathVariable String id) {
+            nguoi_dungService.deleteNguoiDung(id);
+            return ApiResponse.<String>builder()
+                    .message("Xóa người dùng thành công")
+                    .data("Người dùng với ID " + id + " đã được xóa.")
+                    .build();
+        }
+        @PutMapping("/updatenguoidung/{email}")
+        public ApiResponse<String>updateNguoiDung(@PathVariable String email, @RequestBody NguoiDungRequest nguoiDung) {
+            nguoi_dungService.updateNguoiDung(email, nguoiDung);
+            return ApiResponse.<String>builder()
+                    .message("Cập nhật người dùng thành công")
+                    .data("Người dùng với ID " + email + " đã được cập nhật.")
+                    .build();
+        }
 
 
 

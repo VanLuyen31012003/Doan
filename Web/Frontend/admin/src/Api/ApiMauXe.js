@@ -8,9 +8,25 @@ const ApiMauXe = {
         const url = `/mauxe/${id}`;
         return axiosclient.get(url);
     },
-    createMauXe: (data) => {
-        const url = '/mauxe';
-        return axiosclient.post(url, data);
+    updateMauXe: (id, data) => {
+        const url = `/mauxe/updatemauxe/${id}`;
+        return axiosclient.put(url, data,{
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
     },
+    createMauXe: (data) => {
+        const url = '/mauxe/addnewmauxe';
+        return axiosclient.post(url, data, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+    },
+    deleteMauXe: (id) => {
+        const url = `/mauxe/deletemauxe/${id}`;
+        return axiosclient.delete(url);
+    }
 }
 export default ApiMauXe;

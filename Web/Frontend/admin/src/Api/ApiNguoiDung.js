@@ -13,15 +13,15 @@ const ApiNguoiDung = {
         return axiosclient.get(url);
     },
     createNguoiDung: (data) => {
-        const url = '/nguoidung';
+        const url = '/nguoidung/addnguoidung';
         return axiosclient.post(url, data);
     },
-    updateNguoiDung: (id, data) => {
-        const url = `/nguoidung/${id}`;
+    updateNguoiDung: (email, data) => {
+        const url = `/nguoidung/updatenguoidung/${email}`;
         return axiosclient.put(url, data);
     },
     deleteNguoiDung: (id) => {
-        const url = `/nguoidung/${id}`;
+        const url = `/nguoidung/deletenguoidung/${id}`;
         return axiosclient.delete(url);
     },
 }

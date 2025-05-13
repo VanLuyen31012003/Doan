@@ -38,6 +38,7 @@ public class NguoiDungService {
                 .vai_tro(nguoiDung.getVai_tro())
                 .build();
     }
+    @PreAuthorize("hasRole('ADMIN')")
     public NguoiDungResponse addnguoidung(NguoiDungRequest nguoiDung){
         NguoiDung nguoi = NguoiDung.builder().vai_tro(nguoiDung.getVai_tro())
                 .ho_ten(nguoiDung.getHo_ten())
@@ -63,5 +64,23 @@ public class NguoiDungService {
                 .mat_khau(nguoiDung.getMat_khau()) // nếu không muốn trả về password thì bỏ dòng này
                 .vai_tro(nguoiDung.getVai_tro())
                 .build();
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    public String deleteNguoiDung(String email){
+        NguoiDung nguoiDung=  nguoiDungRepository.findByEmail(email).orElseThrow(() ->
+                new RuntimeException("Không tìm thấy người dùng với email: " + email));
+        nguoiDungRepository.deleteById(nguoiDung.getNguoi_dung_id());
+        return "Xóa thành công";
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    public String updateNguoiDung(String email, NguoiDungRequest nguoiDungRequest){
+        NguoiDung nguoiDung=  nguoiDungRepository.findByEmail(email).orElseThrow(() ->
+                new RuntimeException("Không tìm thấy người dùng với email: " + email));
+        nguoiDung.setHo_ten(nguoiDungRequest.getHo_ten());
+        nguoiDung.setEmail(nguoiDungRequest.getEmail());
+        nguoiDung.setMat_khau(nguoiDungRequest.getMat_khau());
+        nguoiDung.setVai_tro(nguoiDungRequest.getVai_tro());
+        nguoiDungRepository.save(nguoiDung);
+        return "Cập nhật thành công";
     }
 }

@@ -3,6 +3,8 @@ import { Table, Image, Button, Tag, Space, Pagination, Typography, Card, Input, 
 import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, UploadOutlined, LoadingOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import ApiLoaiXeVaHangXe from '../../Api/ApiLoaiXeVaHangXe';
+import ApiMauXe from '../../Api/ApiMauXe';
+import { toast } from 'react-toastify';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -26,6 +28,7 @@ const ManageMauxe = () => {
   const [uploadLoading, setUploadLoading] = useState(false);
   const [hangXeList, setHangXeList] = useState([]);
   const [loaiXeList, setLoaiXeList] = useState([]);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // Hàm lấy danh sách mẫu xe từ API
   const fetchData = async (page = 0, size = 10) => {
@@ -52,7 +55,6 @@ const ManageMauxe = () => {
   // Hàm lấy danh sách hãng xe
   const fetchHangXe = async () => {
     try {
-      // const response = await axios.get('http://localhost:8080/hangxe/getallhang');
       const response = await ApiLoaiXeVaHangXe.getAllHangxe();
       if (response.data.success) {
         setHangXeList(response.data.data);
@@ -66,7 +68,7 @@ const ManageMauxe = () => {
   // Hàm lấy danh sách loại xe
   const fetchLoaiXe = async () => {
     try {
-       const response =await ApiLoaiXeVaHangXe.getAllLoaiXe();
+      const response = await ApiLoaiXeVaHangXe.getAllLoaiXe();
       if (response.data.success) {
         setLoaiXeList(response.data.data);
       }
@@ -93,6 +95,7 @@ const ManageMauxe = () => {
     setIsEditMode(false);
     setCurrentModel(null);
     setImageUrl('');
+    setSelectedFile(null);
     form.resetFields();
     setIsModalVisible(true);
   };
@@ -102,6 +105,7 @@ const ManageMauxe = () => {
     setIsEditMode(true);
     setCurrentModel(record);
     setImageUrl(record.anhDefault);
+    setSelectedFile(null);
     
     // Set form values
     form.setFieldsValue({
@@ -128,27 +132,26 @@ const ManageMauxe = () => {
     }
     
     if (info.file.status === 'done') {
-      // Giả sử API trả về URL của ảnh đã upload
-      setImageUrl(info.file.response.url);
       setUploadLoading(false);
     }
   };
 
-  // Xử lý upload ảnh lên server (giả lập)
+  // Xử lý upload ảnh lên server
   const customUpload = async ({ file, onSuccess, onError }) => {
     setUploadLoading(true);
     
     try {
-      // Demo: Giả lập upload file và nhận URL
-      // Trong thực tế, bạn cần gọi API để upload file
-      setTimeout(() => {
-        const url = URL.createObjectURL(file);
-        setImageUrl(url);
-        onSuccess({ url });
-        setUploadLoading(false);
-      }, 1000);
+      // Lưu file để sử dụng khi gửi form
+      setSelectedFile(file);
+      
+      // Tạo URL tạm thời để hiển thị preview
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+      onSuccess({ url });
     } catch (error) {
+      console.error('Error handling file:', error);
       onError(error);
+    } finally {
       setUploadLoading(false);
     }
   };
@@ -159,17 +162,12 @@ const ManageMauxe = () => {
       const values = await form.validateFields();
       setConfirmLoading(true);
       
-      const formData = {
-        ...values,
-        anhDefault: imageUrl,
-      };
-      
       if (isEditMode) {
         // Cập nhật mẫu xe
-        await updateModel(formData);
+        await updateModel(values);
       } else {
         // Thêm mẫu xe mới
-        await createModel(formData);
+        await createModel(values);
       }
       
       setIsModalVisible(false);
@@ -184,46 +182,86 @@ const ManageMauxe = () => {
   // Thêm mẫu xe mới
   const createModel = async (data) => {
     try {
-      const response = await axios.post('http://localhost:8080/mauxe/themmauxe', data);
+      // Tạo FormData để gửi dữ liệu multipart/form-data
+      const formData = new FormData();
+      formData.append('tenMau', data.tenMau);
+      formData.append('hangxeId', data.hangXeId);
+      formData.append('loaiXeId', data.loaiXeId);
+      formData.append('giaThueNgay', data.giaThueNgay);
+      formData.append('moTa', data.moTa || '');
+      
+      // Thêm file ảnh nếu có
+      if (selectedFile) {
+        formData.append('anhDefault', selectedFile);
+      }
+      
+      console.log('Form data entries:');
+      for (let pair of formData.entries()) {
+        console.log(pair[0] + ': ' + (pair[0] === 'anhDefault' ? 'File' : pair[1]));
+      }
+      const response = await ApiMauXe.createMauXe(formData);
+      
       if (response.data.success) {
-        message.success('Thêm mẫu xe thành công');
+        toast.success('Thêm mẫu xe thành công');
       } else {
-        message.error('Thêm mẫu xe không thành công');
+        toast.error('Thêm mẫu xe không thành công');
       }
     } catch (error) {
       console.error('Error creating model:', error);
-      message.error('Không thể thêm mẫu xe');
+      toast.error('Lỗi khi thêm mẫu xe: ' + (error.response?.data?.message || error.message));
     }
   };
 
   // Cập nhật thông tin mẫu xe
   const updateModel = async (data) => {
     try {
-      const response = await axios.put(`http://localhost:8080/mauxe/updatemauxe/${currentModel.mauXeId}`, data);
+      // Tạo FormData để gửi dữ liệu multipart/form-data
+      const formData = new FormData();
+      formData.append('tenMau', data.tenMau);
+      formData.append('hangxeId', data.hangXeId);
+      formData.append('loaiXeId', data.loaiXeId);
+      formData.append('giaThueNgay', data.giaThueNgay);
+      formData.append('moTa', data.moTa || '');
+      
+      // Thêm file ảnh nếu có file mới được chọn
+      if (selectedFile) {
+        formData.append('anhDefault', selectedFile);
+      } else if (imageUrl && !imageUrl.startsWith('blob:')) {
+        // Nếu đang sử dụng URL ảnh cũ từ server
+        formData.append('anhDefaultUrl', imageUrl);
+      }
+      
+      // const response = await axios.put(`http://localhost:8080/mauxe/updatemauxe/${currentModel.mauXeId}`, formData, {
+      //   headers: {
+      //     'Content-Type': 'multipart/form-data'
+      //   }
+      // });
+      const response = await ApiMauXe.updateMauXe(currentModel.mauXeId, formData);
+      
       if (response.data.success) {
-        message.success('Cập nhật mẫu xe thành công');
+        toast.success('Cập nhật mẫu xe thành công');
       } else {
-        message.error('Cập nhật mẫu xe không thành công');
+        toast.error('Cập nhật mẫu xe không thành công');
       }
     } catch (error) {
       console.error('Error updating model:', error);
-      message.error('Không thể cập nhật mẫu xe');
+      toast.error('Không thể cập nhật mẫu xe: ' + (error.response?.data?.message || error.message));
     }
   };
 
   // Xóa mẫu xe
   const deleteModel = async (id) => {
     try {
-      const response = await axios.delete(`http://localhost:8080/mauxe/xoamauxe/${id}`);
+      const response = await ApiMauXe.deleteMauXe(id);
       if (response.data.success) {
-        message.success('Xóa mẫu xe thành công');
+        toast.success('Xóa mẫu xe thành công');
         fetchData(pagination.current - 1, pagination.pageSize); // Refresh data
       } else {
-        message.error('Xóa mẫu xe không thành công');
+        toast.error('Xóa mẫu xe không thành công');
       }
     } catch (error) {
       console.error('Error deleting model:', error);
-      message.error('Không thể xóa mẫu xe');
+      toast.error('Xóa thất bại: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -436,12 +474,13 @@ const ManageMauxe = () => {
             label="Hình ảnh"
           >
             <Upload
-              name="avatar"
+              name="anhDefault"
               listType="picture-card"
               className="avatar-uploader"
               showUploadList={false}
               customRequest={customUpload}
               onChange={handleImageChange}
+              accept="image/*"
             >
               {imageUrl ? (
                 <img 
@@ -458,6 +497,7 @@ const ManageMauxe = () => {
             </Upload>
             <div style={{ marginTop: 8 }}>
               {imageUrl ? 'Đã chọn ảnh' : 'Chưa có ảnh được chọn'}
+              {selectedFile && <span> ({selectedFile.name})</span>}
             </div>
           </Form.Item>
         </Form>
