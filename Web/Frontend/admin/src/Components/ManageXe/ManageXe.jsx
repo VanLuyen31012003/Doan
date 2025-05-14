@@ -156,7 +156,7 @@ const ManageXe = () => {
       case STATUS.AVAILABLE:
         return <Tag color="green">Có sẵn</Tag>;
       case STATUS.IN_USE:
-        return <Tag color="blue">Đang thuê</Tag>;
+        return <Tag color="blue">Đang bảo trì</Tag>;
       case STATUS.MAINTENANCE:
         return <Tag color="orange">Đang bảo trì</Tag>;
       case STATUS.INACTIVE:

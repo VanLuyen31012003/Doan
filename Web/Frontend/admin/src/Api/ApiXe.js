@@ -9,15 +9,15 @@ const ApiXe = {
         return axiosclient.get(url);
     },
     createXe: (data) => {
-        const url = '/xe';
+        const url = '/xe/addxe';
         return axiosclient.post(url, data);
     },
     updateXe: (id, data) => {
-        const url = `/xe/${id}`;
+        const url = `/xe/updatexe/${id}`;
         return axiosclient.put(url, data);
     },
     deleteXe: (id) => {
-        const url = `/xe/${id}`;
+        const url = `/xe/deletexe/${id}`;
         return axiosclient.delete(url);
     },
 }

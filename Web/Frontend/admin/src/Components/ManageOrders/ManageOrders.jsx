@@ -8,12 +8,7 @@ import {
   Card,
   Input,
   DatePicker,
-  Modal,
-  Descriptions,
   message,
-  Spin,
-  Row,
-  Col,
 } from "antd";
 import {
   SearchOutlined,
@@ -24,6 +19,8 @@ import {
 } from "@ant-design/icons";
 import moment from "moment";
 import ApiDonDat from "../../Api/ApiDonDat";
+import { toast } from "react-toastify";
+import OrderDetailModal from "./OrderDetailModal";
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
@@ -72,7 +69,14 @@ const ManageOrders = () => {
   }, []);
 
   // Hàm xử lý trạng thái đơn hàng
-  const getStatusTag = (status) => {
+  const getStatusTag = (status, ngayKetThuc) => {
+    if (status === ORDER_STATUS.DANG_THUE && ngayKetThuc) {
+      const endDate = moment(ngayKetThuc);
+      const currentDate = moment();
+      if (endDate.isBefore(currentDate)) {
+        return <Tag color="red">Quá hạn</Tag>;
+      }
+    }
     switch (status) {
       case ORDER_STATUS.CHO_XAC_NHAN:
         return <Tag color="blue">Chờ xác nhận</Tag>;
@@ -132,16 +136,16 @@ const ManageOrders = () => {
   const handleStatusChange = async (orderId, newStatus) => {
     setConfirmLoading(true);
     try {
-      // Thay thế bằng API thực tế của bạn
-      // const response = await ApiDonDat.updateOrderStatus(orderId, newStatus);
-      // Giả lập API call
       await new Promise((resolve) => setTimeout(resolve, 500));
+      await ApiDonDat.updateDonDat(orderId, {
+        trangThai: newStatus
+      });
 
-      message.success(`Đã cập nhật trạng thái đơn hàng #${orderId} thành công`);
-      fetchData(); // Làm mới dữ liệu sau khi cập nhật
+      toast.success(`Đã cập nhật trạng thái đơn hàng #${orderId} thành công`);
+      fetchData();
     } catch (error) {
       console.error("Error updating order status:", error);
-      message.error("Có lỗi khi cập nhật trạng thái đơn hàng");
+      toast.error("Có lỗi khi cập nhật trạng thái đơn hàng");
     } finally {
       setConfirmLoading(false);
     }
@@ -201,7 +205,7 @@ const ManageOrders = () => {
       title: "Trạng thái",
       dataIndex: "trangThai",
       key: "trangThai",
-      render: (status) => getStatusTag(status),
+      render: (status, record) => getStatusTag(status, record.ngayKetThuc),
       filters: [
         { text: "Chờ xác nhận", value: ORDER_STATUS.CHO_XAC_NHAN },
         { text: "Đã xác nhận", value: ORDER_STATUS.DA_XAC_NHAN },
@@ -211,11 +215,10 @@ const ManageOrders = () => {
       ],
       onFilter: (value, record) => record.trangThai === value,
     },
-    // Sửa lại phần render Actions trong column definitions
     {
       title: "Thao tác",
       key: "action",
-      width: 180, // Thêm độ rộng cố định cho cột
+      width: 180,
       render: (_, record) => (
         <Space direction="vertical" size="small" style={{ width: "100%" }}>
           <Button
@@ -293,97 +296,6 @@ const ManageOrders = () => {
       ),
     },
   ];
-
-  // Modal chi tiết đơn hàng
-  const OrderDetailModal = ({ visible, order, onClose }) => {
-    if (!order) return null;
-
-    return (
-      <Modal
-        title={`Chi tiết đơn hàng #${order.donDatXeId}`}
-        open={visible}
-        onCancel={onClose}
-        footer={[
-          <Button key="close" onClick={onClose}>
-            Đóng
-          </Button>,
-        ]}
-        width={800}
-      >
-        {order ? (
-          <div>
-            <Row gutter={[16, 16]}>
-              <Col span={24}>
-                <Card title="Thông tin cơ bản" bordered={false}>
-                  <Descriptions column={2}>
-                    <Descriptions.Item label="Khách hàng">
-                      {order.khachHangName}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Nhân viên">
-                      {order.nguoiDungName || "N/A"}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Trạng thái">
-                      {getStatusTag(order.trangThai)}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Tổng tiền">
-                      {order.tongTien?.toLocaleString("vi-VN")} VNĐ
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày bắt đầu">
-                      {formatDate(order.ngayBatDau)}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Ngày kết thúc">
-                      {formatDate(order.ngayKetThuc)}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Địa điểm nhận xe">
-                      {order.diaDiemNhanXe}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Địa điểm trả xe">
-                      {order.diaDiemTraXe || "Như địa điểm nhận"}
-                    </Descriptions.Item>
-                  </Descriptions>
-                </Card>
-              </Col>
-
-              <Col span={24}>
-                <Card title="Thông tin xe thuê" bordered={false}>
-                  {order.mauXeName ? (
-                    <Descriptions column={2}>
-                      <Descriptions.Item label="Tên xe">
-                        {order.mauXeName}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="Hãng xe">
-                        {order.hangXeName}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="Biển số">
-                        {order.bienSo || "N/A"}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="Số ngày thuê">
-                        {order.soNgayThue || "N/A"}
-                      </Descriptions.Item>
-                    </Descriptions>
-                  ) : (
-                    <p>Không có thông tin xe</p>
-                  )}
-                </Card>
-              </Col>
-
-              {order.ghiChu && (
-                <Col span={24}>
-                  <Card title="Ghi chú" bordered={false}>
-                    <p>{order.ghiChu}</p>
-                  </Card>
-                </Col>
-              )}
-            </Row>
-          </div>
-        ) : (
-          <div className="text-center py-10">
-            <Spin size="large" />
-          </div>
-        )}
-      </Modal>
-    );
-  };
 
   return (
     <Card>
@@ -473,7 +385,6 @@ const ManageOrders = () => {
         }}
       />
 
-      {/* Modal chi tiết đơn hàng */}
       <OrderDetailModal
         visible={detailModalVisible}
         order={selectedOrder}
