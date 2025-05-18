@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import RentalModal from "./RentalModal";
 import "react-toastify/dist/ReactToastify.css";
 import { Tag } from "antd";
+import { getToken } from "../lib/authenticate";
 
 function Diplayproduct(props) {
   const { data } = props;
@@ -36,6 +37,10 @@ function Diplayproduct(props) {
   };
 
   const handleFavoriteClick = () => {
+    if (getToken() === null) {
+      toast.error("Vui lòng đăng nhập để thêm vào yêu thích!");
+      return; 
+    }
     addToCart(data);
     setIsFavorite(true);
     setIsShaking(true);
@@ -48,6 +53,10 @@ function Diplayproduct(props) {
     setTimeout(() => setIsShaking(false), 300);
   };
   const handleOrderClick = () => {
+    if(getToken()===null){
+      toast.error("Vui lòng đăng nhập để đặt xe!")
+      return;
+    }
     setIsModalVisible(true);
   };
 

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class KhachHangReponse {
+    private int id;
     private String hoTen;
     private String email;
     private String soDienThoai;

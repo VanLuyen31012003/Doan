@@ -40,7 +40,7 @@ function Navbar() {
   };
 
   return (
-    <div className="w-full md:fixed md:top-0 md:left-0 md:z-10 flex flex-col-reverse md:flex-row bg-white text-[#777777] h-[110px] items-center justify-around">
+    <div className="w-full  md:top-0 md:left-0 md:z-10 flex flex-col-reverse md:flex-row bg-white text-[#777777] h-[110px] items-center justify-around">
   
       <h1 style={{ fontSize: "48px", fontWeight: "1000", color: "black" }}> MOTOVIP</h1>
 

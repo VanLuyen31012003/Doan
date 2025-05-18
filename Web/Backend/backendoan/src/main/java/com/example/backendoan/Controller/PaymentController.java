@@ -30,9 +30,6 @@ public class PaymentController {
                                             @RequestParam("amount") String amount,
                                            @RequestParam("orderId") String orderId
     ) throws UnsupportedEncodingException {
-//        String orderId = String.valueOf(System.currentTimeMillis()); // Mã đơn hàng
-//        String amount = "10000000"; // Số tiền: 1000.00đ (nhân 100 lần)
-
         Map<String, String> vnp_Params = new HashMap<>();
         vnp_Params.put("vnp_Version", "2.1.0");
         vnp_Params.put("vnp_Command", "pay");
@@ -95,6 +92,12 @@ public class PaymentController {
         for (Map.Entry<String, String[]> entry : fields.entrySet()) {
             vnpParams.put(entry.getKey(), entry.getValue()[0]);
         }
+        String fullUrl = request.getRequestURL().toString();
+        String queryString = request.getQueryString();
+        if (queryString != null) {
+            fullUrl += "?" + queryString;
+        }
+        System.out.println("Full callback URL: " + fullUrl);
 
         String vnpSecureHash = vnpParams.remove("vnp_SecureHash");
 

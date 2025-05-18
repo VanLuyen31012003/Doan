@@ -16,6 +16,8 @@ import Cart from "./Pages/Cart";
 import { ToastContainer } from "react-toastify";
 import Detailorder from "./Pages/Detailorder";
 import PaymentResult from "./Pages/PaymentResult";
+import Contact from "./Pages/Contact";
+import ConTact from "./Pages/Contact";
 
 function App() {
   return (
@@ -25,7 +27,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/banggia" element={<Bangia />} />
         <Route path="/datxe" element={<RentalForm />} />
-        <Route path="/lienhe" element={<ContactPage />} />
+        <Route path="/lienhe" element={<ConTact />} />
         <Route path="/chitietsp/:id" element={<Detailproduct />} />
         <Route path="/allsanpham" element={<Allpoducts />} />
         <Route path="/login" element={<Login />} />

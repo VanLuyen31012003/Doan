@@ -35,7 +35,7 @@ public class SecurityConfig {
     private final String [] Public_EnpointGet={"/mauxe/images/**","/nguoidung/getallnguoidung",
             "/mauxe/getallmauxe","/mauxe/gettop10mauxe","/mauxe/getmauxe/**","/mauxe/search",
             "/mauxe/getmauxetheoloaixe/**","/danhgia/getalldanhgiabyid/**","/payment/api/payment/create"
-            ,"/payment/api/payment/vnpay-return","/auth/testmail","/xe/getallxe"
+            ,"/payment/api/payment/vnpay-return","/auth/testmail","/xe/getallxe","/api/chat/history","/api/chat/conversations",
     };
 
     @Bean
@@ -76,7 +76,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:3001","http://192.168.65.19:3000")); // Cho phép origin của React
+        configuration.setAllowedOrigins(List.of("http://localhost:3000","http://localhost:3001","http://192.168.65.66:3001","http://192.168.65.66:3000")); // Cho phép origin của React
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

@@ -2,7 +2,8 @@ import axios from 'axios';
 import { getToken } from '../lib/authenticate';
 const axiosclient = axios.create(
     {
-        baseURL:'http://localhost:8080/',
+        // baseURL:'http://192.168.65.66:8080/',
+                 baseURL:'http://localhost:8080/',
         headers:{
             'Content-Type': 'application/json'
         }

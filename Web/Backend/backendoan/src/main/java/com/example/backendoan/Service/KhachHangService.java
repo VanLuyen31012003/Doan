@@ -23,6 +23,7 @@ public class KhachHangService {
         KhachHang khachHang1 = khachHang.orElseThrow(() ->
                 new RuntimeException("Không tìm thấy khách hàng với email: " + name));
         return KhachHangReponse.builder()
+                .id(khachHang1.getKhachHangId())
                 .hoTen(khachHang1.getHoTen())
                 .email(khachHang1.getEmail())
                 .soDienThoai(khachHang1.getSoDienThoai())

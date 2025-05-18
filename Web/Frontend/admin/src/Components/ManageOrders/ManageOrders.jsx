@@ -53,7 +53,7 @@ const ManageOrders = () => {
       if (response.data.success) {
         const orderData = response.data.data;
         setOrders(orderData);
-        setFilteredOrders(orderData);
+        setFilteredOrders(orderData.reverse());
       }
     } catch (error) {
       console.error("Error fetching orders:", error);

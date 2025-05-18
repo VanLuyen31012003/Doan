@@ -16,6 +16,7 @@ import ManageMoney from '../Components/ManageMoney/ManageMoney';
 import { removeToken } from '../Lib/authenticate';
 import ManageUsers from '../Components/ManageUsers/ManageUsers';
 import ManageXe from '../Components/ManageXe/ManageXe';
+import ManageChat from '../Components/ManageChart/MangageChat';
 
 const { Header, Sider, Content } = Layout;
 
@@ -44,7 +45,7 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (selectedKey) {
       case 'dashboard':
-        return <DashboardContent />;
+        return <ManageChat />;
       case 'vehicles':
         return <ManageMauxe />;
       case 'users':
@@ -55,6 +56,7 @@ const Dashboard = () => {
         return <ManageXe />;
       case 'doanhthu':
         return <ManageMoney />;
+       
       default:
         return <DashboardContent />;
     }
@@ -75,7 +77,7 @@ const Dashboard = () => {
         >
           <Menu.Item key="dashboard" icon={<MdDashboard />
 }>
-            Dashboard
+            Chat
           </Menu.Item>
           <Menu.Item key="vehicles" icon={<FaMotorcycle />
 }>
