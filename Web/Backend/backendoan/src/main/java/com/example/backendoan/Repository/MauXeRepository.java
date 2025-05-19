@@ -4,12 +4,13 @@ import com.example.backendoan.Entity.MauXe;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
-public interface MauXeRepository extends JpaRepository<MauXe, Integer> {
+public interface MauXeRepository extends JpaRepository<MauXe, Integer>, JpaSpecificationExecutor<MauXe> {
     //get all MauXe by loaiXeId
 //     Page<MauXe> findByLoaiXe_LoaiXeId(Integer loaiXeId, Pageable pageable);
     Page<MauXe> findByLoaiXeId(Integer loaiXeId, Pageable pageable);

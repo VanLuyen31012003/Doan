@@ -12,38 +12,68 @@ import {
   Empty,
   Spin,
   Button,
+  DatePicker,
+  message,
 } from "antd";
 import { SearchOutlined, FilterOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
 import { IoMdHeart } from "react-icons/io";
 import ApiMauXe from "../api/ApiMauXe"; // Import API
+import moment from "moment"; // Đã cài đặt moment
 
 function AllProducts() {
   const [products, setProducts] = useState([]); // Dữ liệu sản phẩm
   const [loading, setLoading] = useState(true); // Trạng thái loading
   const [searchText, setSearchText] = useState(""); // Tìm kiếm
-  const [filteredCategory, setFilteredCategory] = useState(null); // Lọc danh mục
+  const [filteredCategory, setFilteredCategory] = useState({
+    hangXeId: null,
+    loaiXeId: null,
+  }); // Lọc danh mục
+  const [startDate, setStartDate] = useState(null); // Ngày bắt đầu
+  const [endDate, setEndDate] = useState(null); // Ngày kết thúc
   const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
   const [pageSize, setPageSize] = useState(12); // Số sản phẩm mỗi trang
   const [totalProducts, setTotalProducts] = useState(0); // Tổng số sản phẩm
   const [hangXeList, setHangXeList] = useState([]);
-const [loaiXeList, setLoaiXeList] = useState([]);
-  
+  const [loaiXeList, setLoaiXeList] = useState([]);
 
   const { Title, Text } = Typography;
   const { Option } = Select;
+  const { RangePicker } = DatePicker;
 
   // Gọi API để lấy dữ liệu sản phẩm
+ // Hàm gọi API sửa đổi
 const fetchProducts = async () => {
   setLoading(true);
   try {
+    if (startDate && endDate && startDate.isAfter(endDate)) {
+      message.error("Ngày bắt đầu phải trước ngày kết thúc!");
+      setStartDate(null);
+      setEndDate(null);
+      return;
+    }
+    
+    // Log ra để kiểm tra
+    console.log("StartDate:", startDate ? startDate.format("YYYY-MM-DD") : "null");
+    console.log("EndDate:", endDate ? endDate.format("YYYY-MM-DD") : "null");
+    
+    // Định dạng ngày tháng đúng cách
+    const formattedStartDate = startDate ? startDate.format("YYYY-MM-DD") + "T00:00:00" : "";
+    const formattedEndDate = endDate ? endDate.format("YYYY-MM-DD") + "T23:59:59" : "";
+    
+    console.log("Formatted StartDate:", formattedStartDate);
+    console.log("Formatted EndDate:", formattedEndDate);
+    
     const response = await ApiMauXe.searchMauxe(
       searchText,
-      filteredCategory?.hangXeId || "",
-      filteredCategory?.loaiXeId || "",
+      filteredCategory.hangXeId || "",
+      filteredCategory.loaiXeId || "",
+      formattedStartDate,
+      formattedEndDate,
       currentPage - 1,
       pageSize
     );
+    
     setProducts(response.data.data.content || []);
     setTotalProducts(response.data.data.page?.totalElements || 0);
   } catch (error) {
@@ -52,37 +82,32 @@ const fetchProducts = async () => {
     setLoading(false);
   }
 };
+
   useEffect(() => {
-  const fetchFilters = async () => {
-    try {
-      const hangXeResponse = await ApiMauXe.getallHangXe();
-      const loaiXeResponse = await ApiMauXe.getallLoaiXe();
+    const fetchFilters = async () => {
+      try {
+        const hangXeResponse = await ApiMauXe.getallHangXe();
+        const loaiXeResponse = await ApiMauXe.getallLoaiXe();
 
-      if (hangXeResponse.data.success) {
-        setHangXeList(hangXeResponse.data.data);
-        console.log("đây là hang xe response.data.data",hangXeResponse.data.data)
+        if (hangXeResponse.data.success) {
+          setHangXeList(hangXeResponse.data.data);
+        }
+        if (loaiXeResponse.data.success) {
+          setLoaiXeList(loaiXeResponse.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching filter data:", error);
       }
-      if (loaiXeResponse.data.success) {
-        setLoaiXeList(loaiXeResponse.data.data);
-                console.log("đây là hang xe response.data.data",loaiXeResponse.data.data)
+    };
 
-      }
-    } catch (error) {
-      console.error("Error fetching filter data:", error);
-    }
-  };
-
-  fetchFilters();
-}, []);
+    fetchFilters();
+  }, []);
 
   // Gọi API khi component được mount hoặc khi các điều kiện thay đổi
   useEffect(() => {
     fetchProducts();
-  }, [searchText, filteredCategory, currentPage, pageSize]);
+  }, [searchText, filteredCategory, startDate, endDate, currentPage, pageSize]);
 
-  // Lấy danh sách danh mục duy nhất cho bộ lọc
-  // const categories = [...new Set(products.map(item => item.loaiXeReponse?.tenLoaiXe))];
-  const categories = [1, 2, 3, 4, 5];
   // Xử lý tìm kiếm
   const handleSearch = (value) => {
     setSearchText(value);
@@ -90,19 +115,33 @@ const fetchProducts = async () => {
   };
 
   // Xử lý lọc danh mục
-const handleCategoryFilter = (value, type) => {
-  if (type === "hangXe") {
-    setFilteredCategory({ ...filteredCategory, hangXeId: value });
-  } else if (type === "loaiXe") {
-    setFilteredCategory({ ...filteredCategory, loaiXeId: value });
-  }
-  setCurrentPage(1); // Reset về trang đầu tiên khi lọc
-};
+  const handleCategoryFilter = (value, type) => {
+    if (type === "hangXe") {
+      setFilteredCategory({ ...filteredCategory, hangXeId: value });
+    } else if (type === "loaiXe") {
+      setFilteredCategory({ ...filteredCategory, loaiXeId: value });
+    }
+    setCurrentPage(1); // Reset về trang đầu tiên khi lọc
+  };
+
+  // Xử lý chọn khoảng thời gian
+  const handleDateRangeChange = (dates) => {
+    if (dates && dates.length === 2) {
+      setStartDate(dates[0]);
+      setEndDate(dates[1]);
+    } else {
+      setStartDate(null);
+      setEndDate(null);
+    }
+    setCurrentPage(1); // Reset về trang đầu tiên khi thay đổi ngày
+  };
 
   // Xử lý reset bộ lọc
   const handleReset = () => {
     setSearchText("");
-    setFilteredCategory(null);
+    setFilteredCategory({ hangXeId: null, loaiXeId: null });
+    setStartDate(null);
+    setEndDate(null);
     setCurrentPage(1);
   };
 
@@ -137,39 +176,51 @@ const handleCategoryFilter = (value, type) => {
             />
           </div>
 
-<div className="min-w-48">
-  <Text strong>Hãng xe</Text>
-  <Select
-    placeholder="Chọn hãng xe"
-    value={filteredCategory?.hangXeId || null} // Chỉ lưu hangXeId
-    onChange={(value) => handleCategoryFilter(value, "hangXe")}
-    style={{ width: "100%" }}
-    allowClear
-  >
-    {hangXeList.map((hangXe) => (
-      <Option key={hangXe.hangXeId} value={hangXe.hangXeId}>
-        {hangXe.tenHang}
-      </Option>
-    ))}
-  </Select>
-</div>
+          <div className="min-w-48">
+            <Text strong>Hãng xe</Text>
+            <Select
+              placeholder="Chọn hãng xe"
+              value={filteredCategory.hangXeId || null}
+              onChange={(value) => handleCategoryFilter(value, "hangXe")}
+              style={{ width: "100%" }}
+              allowClear
+            >
+              {hangXeList.map((hangXe) => (
+                <Option key={hangXe.hangXeId} value={hangXe.hangXeId}>
+                  {hangXe.tenHang}
+                </Option>
+              ))}
+            </Select>
+          </div>
 
-<div className="min-w-48">
-  <Text strong>Loại xe</Text>
-  <Select
-    placeholder="Chọn loại xe"
-    value={filteredCategory?.loaiXeId || null} // Chỉ lưu loaiXeId
-    onChange={(value) => handleCategoryFilter(value, "loaiXe")}
-    style={{ width: "100%" }}
-    allowClear
-  >
-    {loaiXeList.map((loaiXe) => (
-      <Option key={loaiXe.loaiXeId} value={loaiXe.loaiXeId}>
-        {loaiXe.tenLoai}
-      </Option>
-    ))}
-  </Select>
-</div>
+          <div className="min-w-48">
+            <Text strong>Loại xe</Text>
+            <Select
+              placeholder="Chọn loại xe"
+              value={filteredCategory.loaiXeId || null}
+              onChange={(value) => handleCategoryFilter(value, "loaiXe")}
+              style={{ width: "100%" }}
+              allowClear
+            >
+              {loaiXeList.map((loaiXe) => (
+                <Option key={loaiXe.loaiXeId} value={loaiXe.loaiXeId}>
+                  {loaiXe.tenLoai}
+                </Option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="min-w-48">
+            <Text strong>Khoảng thời gian</Text>
+            <RangePicker
+              value={startDate && endDate ? [startDate, endDate] : null}
+              onChange={handleDateRangeChange}
+              format="YYYY-MM-DD"
+              style={{ width: "100%" }}
+              placeholder={["Ngày bắt đầu", "Ngày kết thúc"]}
+              allowClear
+            />
+          </div>
 
           <Button icon={<FilterOutlined />} onClick={handleReset}>
             Đặt lại bộ lọc
@@ -187,22 +238,22 @@ const handleCategoryFilter = (value, type) => {
             {products.map((product) => (
               <Col xs={24} sm={12} md={8} lg={6} key={product.mauXeId}>
                 <Card
-  hoverable
-  cover={
-    <div className="flex justify-center items-center h-[200px]">
-      <Image
-        width={280}
-        height={200}
-        className="object-center"
-        style={{ objectFit: "cover" }}
-        src={product.anhDefault || "link ảnh mặc định"}
-        alt={product.tenMau}
-        preview={false}
-      />
-    </div>
-  }
-  className="h-full flex flex-col "
->
+                  hoverable
+                  cover={
+                    <div className="flex justify-center items-center h-[200px]">
+                      <Image
+                        width={280}
+                        height={200}
+                        className="object-center"
+                        style={{ objectFit: "cover" }}
+                        src={product.anhDefault || "link ảnh mặc định"}
+                        alt={product.tenMau}
+                        preview={false}
+                      />
+                    </div>
+                  }
+                  className="h-full flex flex-col "
+                >
                   <div className="flex flex-col flex-grow">
                     <div className="flex justify-between">
                       <Tag
@@ -219,12 +270,6 @@ const handleCategoryFilter = (value, type) => {
                         {product.tenMau}
                       </Title>
                     </div>
-
-                    {/* <div className='flex bg-blue-50 items-center justify-around  flex-row w-full'>
-                      <Text type="secondary" className="mb-1">{product.loaiXeReponse?.tenLoaiXe}</Text>
-                                          <Text type="secondary" className="mb-1">{product.tenHangXe}</Text>
-
-                    </div> */}
 
                     <div className="mt-auto pt-2">
                       <Title level={4} className="mb-2 fire">
@@ -257,7 +302,7 @@ const handleCategoryFilter = (value, type) => {
               total={totalProducts}
               onChange={handlePageChange}
               showSizeChanger
-              pageSizeOptions={["6","12", "24", "36"]}
+              pageSizeOptions={["6", "12", "24", "36"]}
               showTotal={(total, range) =>
                 `${range[0]}-${range[1]} của ${total} sản phẩm`
               }

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,9 +19,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import jakarta.persistence.criteria.Predicate; // Đảm bảo import đúng Predicate từ JPA
 
 @Service
 public class MauXeService {
@@ -40,6 +43,8 @@ public class MauXeService {
     private AnhXeRepository anhXeRepository;
     @Autowired
     private  ThongTinKyThuatRepository thongTinKyThuatRepository;
+    @Autowired
+    private ChiTietDonDatXeRepository chiTietDonDatXeRepository;
 
     public Page<MauXeResponse> getAllMauXe(Pageable pageable) {
         return mauXeRepository.findAll(pageable).map(mauXe -> {
@@ -265,8 +270,31 @@ public class MauXeService {
         });
 
     }
-    public Page<MauXeResponse> searchMauXe(String tenMau, Integer loaiXeId, Integer hangXeId, Pageable pageable) {
-        return mauXeRepository.searchMauXe(tenMau, loaiXeId, hangXeId, pageable).map(mauXe -> {
+    public Page<MauXeResponse> searchMauXe(String tenMau, Integer loaiXeId, Integer hangXeId, LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
+        // Xây dựng truy vấn cơ bản
+        Specification<MauXe> spec = (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (tenMau != null && !tenMau.isEmpty()) {
+                predicates.add(cb.like(cb.lower(root.get("tenMau")), "%" + tenMau.toLowerCase() + "%"));
+            }
+            if (loaiXeId != null) {
+                predicates.add(cb.equal(root.get("loaiXeId"), loaiXeId));
+            }
+            if (hangXeId != null) {
+                predicates.add(cb.equal(root.get("hangXeId"), hangXeId));
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+
+        Page<MauXe> mauXePage = mauXeRepository.findAll(spec, pageable);
+
+        return mauXePage.map(mauXe -> {
+            long soLuongXeConLai = countAvailableCars(mauXe.getMauXeId(), startDate, endDate);
+            int intNumber = (int) soLuongXeConLai;
+
+
             String tenHangXe = hangXeRepository.findById(mauXe.getHangXeId())
                     .map(HangXe::getTenHang)
                     .orElse("Không xác định");
@@ -286,9 +314,29 @@ public class MauXeService {
                     .moTa(mauXe.getMoTa())
                     .anhDefault(mauXe.getAnhdefault())
                     .loaiXeReponse(loaiXeResponse)
-                    .soLuongxeconlai(xeRepository.countByMauXe_MauXeIdAndTrangThai(mauXe.getMauXeId(), TrangThaiXe.CHUA_THUE.getValue()))
+                    .soLuongxeconlai(intNumber)
                     .build();
         });
+    }
+
+    private long countAvailableCars(Integer mauXeId, LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate == null || endDate == null) {
+            // Nếu không có khoảng thời gian, trả về số xe chưa thuê theo trạng thái hiện tại (trang_thai = 0)
+            return xeRepository.countByMauXe_MauXeIdAndTrangThai(mauXeId, 0);
+        }
+        System.out.println("MauXeId: " + mauXeId +" StartDate: " + startDate + " EndDate: " + endDate);
+
+        // Lấy tất cả xe thuộc mẫu xe này
+        List<Xe> allXe = xeRepository.findByMauXe_MauXeId(mauXeId);
+        long totalXe = allXe.size();
+
+
+        // Lấy danh sách xe_id đã được đặt trong khoảng thời gian
+        List<Integer> bookedXeIds = chiTietDonDatXeRepository.findBookedXeIds(mauXeId, startDate, endDate);
+        long bookedCount = bookedXeIds.size();
+        System.out.println("BookedCount: " + bookedCount);
+
+        return totalXe - bookedCount;
     }
     //lay top 10 mau xe co luot dat nhieu
     public List<MauXeResponse> getTop10MauXeBySoLuotDat(Integer loaixeId) {

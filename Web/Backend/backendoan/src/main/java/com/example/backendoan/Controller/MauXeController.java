@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -125,37 +127,30 @@ public class MauXeController {
                 .data(mauXePage)
                 .build();
     }
-    /**
-     * Tìm kiếm mẫu xe theo tên, loại xe và hãng xe với phân trang.
-     *
-     * @param tenMau Tên mẫu xe (tùy chọn, tìm kiếm gần đúng).
-     * @param loaiXeId ID của loại xe (tùy chọn).
-     * @param hangXeId ID của hãng xe (tùy chọn).
-     * @param page Trang hiện tại (mặc định 0).
-     * @param size Số bản ghi mỗi trang (mặc định 10).
-     * @param sort Trường và hướng sắp xếp (mặc định "mauXeId,asc").
-     * @return ApiResponse chứa danh sách mẫu xe phân trang.
-     */
     @GetMapping("/search")
     public ApiResponse<Page<MauXeResponse>> searchMauXe(
             @RequestParam(required = false) String tenMau,
             @RequestParam(required = false) Integer loaiXeId,
             @RequestParam(required = false) Integer hangXeId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "100") int size,
             @RequestParam(defaultValue = "mauXeId,asc") String sort) {
         String[] sortParams = sort.split(",");
         String sortField = sortParams[0];
         Sort.Direction sortDirection = Sort.Direction.fromString(sortParams[1]);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortField));
 
-        Page<MauXeResponse> mauXePage = mauXeService.searchMauXe(tenMau, loaiXeId, hangXeId, pageable);
+        Page<MauXeResponse> mauXePage = mauXeService.searchMauXe(tenMau, loaiXeId, hangXeId, startDate, endDate, pageable);
 
         return ApiResponse.<Page<MauXeResponse>>builder()
-                .message("Tìm kiếm mẫu xe thành công"+
-                        " với tên: " + tenMau +
-                        ", loại xe ID: " + loaiXeId +
-                        ", hãng xe ID: " + hangXeId)
+                .message("Tìm kiếm mẫu xe thành công" +
+                        " với tên: " + (tenMau != null ? tenMau : "không xác định") +
+                        ", loại xe ID: " + (loaiXeId != null ? loaiXeId : "không xác định") +
+                        ", hãng xe ID: " + (hangXeId != null ? hangXeId : "không xác định") +
+                        ", từ ngày: " + (startDate != null ? startDate : "không xác định") +
+                        ", đến ngày: " + (endDate != null ? endDate : "không xác định"))
                 .data(mauXePage)
                 .build();
     }

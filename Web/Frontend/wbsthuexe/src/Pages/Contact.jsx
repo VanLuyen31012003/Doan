@@ -256,7 +256,7 @@ const Chat = () => {
             {selectedConversation ? (
               <>
                 {/* Chat header */}
-                <div className="p-3 bg-white border-b border-gray-200 flex items-center">
+                <div className="p-3  bg-white border-b border-gray-200 hidden md:flex items-center">
                   <div className="w-8 h-8 rounded-full bg-[#dd5c36] flex items-center justify-center text-white mr-3">
                          N
                   </div>

@@ -28,18 +28,20 @@ const ApiMauXe = {
         return axiosclient.get(url)
         
     },
-   searchMauxe: (tenMau = '', hangXeId = '', loaiXeId = '', page = 0, size = 10) => {
-    let url = `/mauxe/search?`;
-
-    // Thêm các tham số vào URL nếu chúng được truyền
-    if (tenMau) url += `tenMau=${tenMau}&`;
-    if (hangXeId) url += `hangXeId=${hangXeId}&`;
-    if (loaiXeId) url += `loaiXeId=${loaiXeId}&`;
-
-    // Thêm các tham số phân trang
-    url += `page=${page}&size=${size}`;
-
-    return axiosclient.get(url);
+    searchMauxe: (tenMau = '', hangXeId = '', loaiXeId = '', startDate = '', endDate = '', page = 0, size = 100) => {
+        let url = `/mauxe/search?`;
+    
+        // Thêm các tham số vào URL nếu chúng được truyền
+        if (tenMau) url += `tenMau=${encodeURIComponent(tenMau)}&`;
+        if (hangXeId) url += `hangXeId=${hangXeId}&`;
+        if (loaiXeId) url += `loaiXeId=${loaiXeId}&`;
+        if (startDate) url += `startDate=${encodeURIComponent(startDate)}&`;
+        if (endDate) url += `endDate=${encodeURIComponent(endDate)}&`;
+    
+        // Thêm các tham số phân trang
+        // url += `page=${page}&size=${size}`;
+    
+        return axiosclient.get(url);
     },
     getallHangXe: () => {
         const url = `/mauxe/getallhangxe`;
