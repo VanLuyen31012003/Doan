@@ -2,14 +2,12 @@ package com.example.backendoan.Service;
 
 import com.example.backendoan.Dto.Request.XeRequest;
 import com.example.backendoan.Entity.*;
-import com.example.backendoan.Repository.HangXeRepository;
-import com.example.backendoan.Repository.LoaiXeRepository;
-import com.example.backendoan.Repository.MauXeRepository;
-import com.example.backendoan.Repository.XeRepository;
+import com.example.backendoan.Repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,6 +20,8 @@ public class XeService {
     HangXeRepository hangXeRepository;
     @Autowired
     MauXeRepository mauXeRepository;
+    @Autowired
+    ChiTietDonDatXeRepository chiTietDonDatXeRepository;
     //get all xe
     public List<Xe> getAllXe() {
         return xeRepository.findAll();
@@ -76,6 +76,17 @@ public class XeService {
     public String deleteXeById(int id) {
         xeRepository.deleteById(id);
         return "Xóa thành công";
+    }
+    public List<Xe> getBookedVehicles(LocalDateTime startDate, LocalDateTime endDate) {
+        if (startDate == null && endDate == null) {
+            // Trường hợp không nhập khoảng thời gian, lấy xe đang được thuê tại thời điểm hiện tại
+            return chiTietDonDatXeRepository.findCurrentlyBookedVehicles();
+        } else {
+            // Trường hợp có khoảng thời gian, sử dụng startDate và endDate
+            LocalDateTime adjustedStartDate = startDate != null ? startDate : LocalDateTime.now();
+            LocalDateTime adjustedEndDate = endDate != null ? endDate : LocalDateTime.now();
+            return chiTietDonDatXeRepository.findBookedVehicles(adjustedStartDate, adjustedEndDate);
+        }
     }
 
 

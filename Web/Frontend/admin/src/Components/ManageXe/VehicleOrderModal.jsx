@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Table, Spin, Tag, message } from 'antd';
-import moment from 'moment';
+import { Modal, Table, Tag, Button, Spin, Empty } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { EyeOutlined } from '@ant-design/icons';
 import ApiDonDat from '../../Api/ApiDonDat';
 
 const ORDER_STATUS = {
@@ -24,112 +25,130 @@ const getStatusTag = (status) => {
     case ORDER_STATUS.DANG_THUE:
       return <Tag color="purple">Đang cho thuê</Tag>;
     default:
-      return <Tag color="default">Không xác định</Tag>;
+      return <Tag>Không xác định</Tag>;
   }
 };
 
 const formatDate = (dateString) => {
-  return moment(dateString).format("DD/MM/YYYY HH:mm");
+  const date = new Date(dateString);
+  return date.toLocaleString('vi-VN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 };
 
 const VehicleOrderModal = ({ visible, xeId, onClose }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate(); // Thêm navigate hook
 
   useEffect(() => {
     if (visible && xeId) {
-      const fetchOrders = async () => {
-        setLoading(true);
-        try {
-          const response = await ApiDonDat.getalldondatbyidxe(xeId);
-          if (response.data.success) {
-            setOrders(response.data.data);
-          } else {
-            message.error("Không thể tải danh sách đơn đặt xe");
-          }
-        } catch (error) {
-          console.error("Error fetching vehicle orders:", error);
-          message.error("Có lỗi khi tải danh sách đơn đặt xe");
-        } finally {
-          setLoading(false);
-        }
-      };
       fetchOrders();
     }
   }, [visible, xeId]);
 
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+      const response = await ApiDonDat.getalldondatbyidxe(xeId);
+      if (response.data.success) {
+        setOrders(response.data.data || []);
+      } else {
+        console.error('Failed to fetch orders:', response.data.message);
+        setOrders([]);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Hàm để điều hướng đến trang chi tiết đơn hàng
+  const goToOrderDetail = (orderId) => {
+    onClose(); // Đóng modal trước khi chuyển hướng
+    navigate(`/dashboard/orders/${orderId}`);
+  };
+
   const columns = [
     {
-      title: "Mã đơn",
-      dataIndex: "donDatXeId",
-      key: "donDatXeId",
-      width: 80,
+      title: 'Mã đơn',
+      dataIndex: 'donDatXeId',
+      key: 'donDatXeId',
     },
     {
-      title: "Khách hàng",
-      dataIndex: "khachHangName",
-      key: "khachHangName",
-      render: (text) => <span className="font-medium">{text}</span>,
+      title: 'Khách hàng',
+      dataIndex: 'khachHangName',
+      key: 'khachHangName',
     },
     {
-      title: "Ngày bắt đầu",
-      dataIndex: "ngayBatDau",
-      key: "ngayBatDau",
+      title: 'Ngày bắt đầu',
+      dataIndex: 'ngayBatDau',
+      key: 'ngayBatDau',
       render: (text) => formatDate(text),
     },
     {
-      title: "Ngày kết thúc",
-      dataIndex: "ngayKetThuc",
-      key: "ngayKetThuc",
+      title: 'Ngày kết thúc',
+      dataIndex: 'ngayKetThuc',
+      key: 'ngayKetThuc',
       render: (text) => formatDate(text),
     },
     {
-      title: "Địa điểm nhận xe",
-      dataIndex: "diaDiemNhanXe",
-      key: "diaDiemNhanXe",
-      ellipsis: true,
-    },
-    {
-      title: "Tổng tiền",
-      dataIndex: "tongTien",
-      key: "tongTien",
-      render: (price) => `${price?.toLocaleString("vi-VN")} VNĐ`,
-    },
-    {
-      title: "Trạng thái",
-      dataIndex: "trangThai",
-      key: "trangThai",
+      title: 'Trạng thái',
+      dataIndex: 'trangThai',
+      key: 'trangThai',
       render: (status) => getStatusTag(status),
+    },
+    {
+      title: 'Thao tác',
+      key: 'action',
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          icon={<EyeOutlined />}
+          onClick={() => goToOrderDetail(record.donDatXeId)}
+        >
+          Chi tiết
+        </Button>
+      ),
     },
   ];
 
   return (
     <Modal
-      title={`Danh sách đơn đặt xe cho xe #${xeId}`}
-      open={visible}
+      title={`Các đơn đặt xe ${xeId ? `#${xeId}` : ''}`}
+      visible={visible}
       onCancel={onClose}
-      footer={[
-        <Button key="close" onClick={onClose}>
-          Đóng
-        </Button>,
-      ]}
       width={1000}
+      footer={[
+        <Button key="back" onClick={onClose}>
+          Đóng
+        </Button>
+      ]}
     >
       {loading ? (
-        <div className="text-center py-10">
-          <Spin size="large" />
+        <div className="text-center py-5">
+          <Spin />
+          <div className="mt-2">Đang tải dữ liệu...</div>
         </div>
+      ) : orders.length === 0 ? (
+        <Empty description="Không tìm thấy đơn đặt xe nào" />
       ) : (
-        <Table
-          columns={columns}
-          dataSource={orders}
-          rowKey="donDatXeId"
-          pagination={{
-            pageSize: 5,
-            showSizeChanger: true,
-            pageSizeOptions: ['5', '10', '20'],
-            showTotal: (total) => `Tổng ${total} đơn đặt xe`,
-          }}
+        <Table 
+          columns={columns} 
+          dataSource={orders} 
+          rowKey="donDatXeId" 
+          pagination={false}
+          onRow={(record) => ({
+            onClick: () => goToOrderDetail(record.donDatXeId),
+            style: { cursor: 'pointer' } // Thêm style để hiển thị cursor pointer khi hover
+          })}
         />
       )}
     </Modal>

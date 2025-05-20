@@ -7,9 +7,12 @@ import com.example.backendoan.Entity.LoaiXe;
 import com.example.backendoan.Entity.Xe;
 import com.example.backendoan.Service.XeService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -65,5 +68,19 @@ public class XeController {
                 .data(xeService.addXe(xe))
                 .build();
     }
+    @GetMapping("/getxethue")
+    public ApiResponse<List<Xe>> getBookedVehicles(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate
+    ) {
+
+            List<Xe> bookedVehicles = xeService.getBookedVehicles(startDate, endDate);
+            return ApiResponse.<List<Xe>>builder()
+                    .message("Lấy danh sách xe đã đặt thành công")
+                    .data(bookedVehicles)
+                    .build();
+
+    }
+
 
 }

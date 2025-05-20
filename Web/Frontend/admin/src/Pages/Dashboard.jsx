@@ -7,9 +7,8 @@ import {
 import { FaMotorcycle } from "react-icons/fa6";
 import { FaMoneyBill } from "react-icons/fa";
 import { RiBillLine } from "react-icons/ri";
-
 import { MdDashboard } from "react-icons/md";
-import { useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import ManageMauxe from '../Components/ManageMauXe/ManageMauxe';
 import ManageOrders from '../Components/ManageOrders/ManageOrders';
 import ManageMoney from '../Components/ManageMoney/ManageMoney';
@@ -17,19 +16,30 @@ import { removeToken } from '../Lib/authenticate';
 import ManageUsers from '../Components/ManageUsers/ManageUsers';
 import ManageXe from '../Components/ManageXe/ManageXe';
 import ManageChat from '../Components/ManageChart/MangageChat';
+import DetailOrder from '../Components/DetailOrder/DetailOrder';
 
 const { Header, Sider, Content } = Layout;
 
 // Các component nội dung
-const DashboardContent = () => (
-  <div>
-    <h3>Dashboard Overview</h3>
-    <p>Thống kê và báo cáo tổng quan</p>
-  </div>
-);
+
+
 const Dashboard = () => {
-  const [selectedKey, setSelectedKey] = useState('dashboard');
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Lấy key từ đường dẫn hiện tại
+  const getSelectedKeyFromPath = () => {
+    const path = location.pathname;
+    if (path.includes('/dashboard/mauxe')) return 'vehicles';
+    if (path.includes('/dashboard/users')) return 'users';
+    if (path.includes('/dashboard/orders')) return 'orders';
+    if (path.includes('/dashboard/xe')) return 'xe';
+    if (path.includes('/dashboard/doanhthu')) return 'doanhthu';
+    return 'dashboard'; // Default
+  };
+  
+  const [selectedKey, setSelectedKey] = useState(getSelectedKeyFromPath);
+  
   const logout = () => {
     // Xử lý đăng xuất tại đây
     removeToken(); // Xóa token khỏi localStorage
@@ -39,26 +49,27 @@ const Dashboard = () => {
   // Xử lý khi click menu
   const handleMenuClick = (e) => {
     setSelectedKey(e.key);
-  };
-
-  // Render nội dung tương ứng với menu được chọn
-  const renderContent = () => {
-    switch (selectedKey) {
+    switch (e.key) {
       case 'dashboard':
-        return <ManageChat />;
+        navigate('/dashboard');
+        break;
       case 'vehicles':
-        return <ManageMauxe />;
+        navigate('/dashboard/mauxe');
+        break;
       case 'users':
-        return <ManageUsers />;
+        navigate('/dashboard/users');
+        break;
       case 'orders':
-        return <ManageOrders />;
+        navigate('/dashboard/orders');
+        break;
       case 'xe':
-        return <ManageXe />;
+        navigate('/dashboard/xe');
+        break;
       case 'doanhthu':
-        return <ManageMoney />;
-       
+        navigate('/dashboard/doanhthu');
+        break;
       default:
-        return <DashboardContent />;
+        navigate('/dashboard');
     }
   };
 
@@ -72,28 +83,25 @@ const Dashboard = () => {
         <Menu 
           theme="dark" 
           mode="inline" 
-          defaultSelectedKeys={[selectedKey]}
+          selectedKeys={[selectedKey]}
           onClick={handleMenuClick}
         >
-          <Menu.Item key="dashboard" icon={<MdDashboard />
-}>
+          <Menu.Item key="dashboard" icon={<MdDashboard />}>
             Chat
           </Menu.Item>
-          <Menu.Item key="vehicles" icon={<FaMotorcycle />
-}>
+          <Menu.Item key="vehicles" icon={<FaMotorcycle />}>
             Quản lý mẫu xe
           </Menu.Item>
           <Menu.Item key="users" icon={<UserOutlined />}>
             Người dùng
           </Menu.Item>
-          <Menu.Item key="orders"  icon={<RiBillLine />
-}>
+          <Menu.Item key="orders" icon={<RiBillLine />}>
             Đơn thuê xe
           </Menu.Item>
-          <Menu.Item key="xe"  icon={<FileOutlined />}>
+          <Menu.Item key="xe" icon={<FileOutlined />}>
             Quản lý xe
           </Menu.Item>
-          <Menu.Item key="doanhthu"  icon={<FaMoneyBill />}>
+          <Menu.Item key="doanhthu" icon={<FaMoneyBill />}>
             Quản lý doanh thu
           </Menu.Item>
         </Menu>
@@ -102,18 +110,28 @@ const Dashboard = () => {
       {/* Nội dung */}
       <Layout>
         <Header style={{ background: '#fff', padding: 0, paddingLeft: 16 }}>
-          <div className='flex justify-between px-6 items-center' >
-            <h2 className="font-bold ">Trang quản trị MotoVip</h2>
-            <Button className='hover:bg-blue-600 bg-blue-600 text-white'
+          <div className='flex justify-between px-6 items-center'>
+            <h2 className="font-bold">Trang quản trị MotoVip</h2>
+            <Button 
+              className='hover:bg-blue-600 bg-blue-600 text-white'
               onClick={logout}
-              style={{ marginLeft: 'auto' }}
-            > Đăng xuất</Button>
+            >
+              Đăng xuất
+            </Button>
           </div>
-          
         </Header>
         <Content style={{ margin: '16px' }}>
           <div style={{ padding: 24, background: '#fff', minHeight: 360 }}>
-            {renderContent()}
+            <Routes>
+              <Route path="/" element={<ManageChat />} />
+              <Route path="/mauxe" element={<ManageMauxe />} />
+              <Route path="/users" element={<ManageUsers />} />
+              <Route path="/orders" element={<ManageOrders />} />
+              <Route path="/xe" element={<ManageXe />} />
+              <Route path="/doanhthu" element={<ManageMoney />} />
+              <Route path="/orders/:id" element={<DetailOrder />} />
+              <Route path="*" element={<ManageChat />} />
+            </Routes>
           </div>
         </Content>
       </Layout>

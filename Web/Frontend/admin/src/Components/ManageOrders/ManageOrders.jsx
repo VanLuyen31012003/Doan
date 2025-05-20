@@ -9,6 +9,7 @@ import {
   Input,
   DatePicker,
   message,
+  Alert,
 } from "antd";
 import {
   SearchOutlined,
@@ -21,6 +22,7 @@ import moment from "moment";
 import ApiDonDat from "../../Api/ApiDonDat";
 import { toast } from "react-toastify";
 import OrderDetailModal from "./OrderDetailModal";
+import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
 const { RangePicker } = DatePicker;
@@ -44,6 +46,8 @@ const ManageOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+  const navigate = useNavigate();
+
 
   // Hàm lấy dữ liệu từ API
   const fetchData = async () => {
@@ -153,9 +157,10 @@ const ManageOrders = () => {
 
   // Hiển thị modal chi tiết đơn hàng
   const showOrderDetail = (order) => {
-    setSelectedOrder(order);
-    setDetailModalVisible(true);
+    // Navigate to the detail page with the order ID
+    navigate(`/dashboard/orders/${order.donDatXeId}`);
   };
+
 
   // Các cột của bảng
   const columns = [
@@ -383,13 +388,14 @@ const ManageOrders = () => {
           pageSizeOptions: ["10", "20", "50"],
           showTotal: (total) => `Tổng ${total} đơn đặt xe`,
         }}
+     
       />
 
-      <OrderDetailModal
+      {/* <OrderDetailModal
         visible={detailModalVisible}
         order={selectedOrder}
         onClose={() => setDetailModalVisible(false)}
-      />
+      /> */}
     </Card>
   );
 };

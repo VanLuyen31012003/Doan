@@ -6,6 +6,7 @@ import moment from 'moment';
 import ApiXe from '../../Api/ApiXe';
 import { toast } from 'react-toastify';
 import VehicleOrderModal from './VehicleOrderModal';
+import XeRenting from './XeRenting';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -266,7 +267,8 @@ const ManageXe = () => {
   ];
 
   return (
-    <Card>
+    <>
+       <Card>
       <div className="mb-4 flex justify-between items-center">
         <Title level={3}>Quản lý Xe</Title>
         <div className="flex items-center gap-4">
@@ -367,7 +369,11 @@ const ManageXe = () => {
         xeId={selectedXeId}
         onClose={() => setIsOrderModalVisible(false)}
       />
-    </Card>
+      </Card>
+      <XeRenting />
+    </>
+   
+  
   );
 };
 

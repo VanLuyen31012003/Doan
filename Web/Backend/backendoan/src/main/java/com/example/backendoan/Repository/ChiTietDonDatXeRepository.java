@@ -2,6 +2,7 @@ package com.example.backendoan.Repository;
 
 import com.example.backendoan.Entity.ChiTietDonDatXe;
 import com.example.backendoan.Entity.DonDatXe;
+import com.example.backendoan.Entity.Xe;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,16 @@ public interface ChiTietDonDatXeRepository extends JpaRepository<ChiTietDonDatXe
     List<Integer> findBookedXeIds(@Param("mauXeId") Integer mauXeId,
                                   @Param("startDate") LocalDateTime startDate,
                                   @Param("endDate") LocalDateTime endDate);
+    @Query("SELECT DISTINCT x FROM Xe x " +
+            "WHERE x.xeId IN (SELECT ctd.xeId FROM ChiTietDonDatXe ctd " +
+            "JOIN ctd.donDatXe dd " +
+            "WHERE (dd.ngayBatDau <= :endDate AND dd.ngayKetThuc >= :startDate))")
+    List<Xe> findBookedVehicles(@Param("startDate") LocalDateTime startDate,
+                                @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT DISTINCT x FROM Xe x " +
+            "WHERE x.xeId IN (SELECT ctd.xeId FROM ChiTietDonDatXe ctd " +
+            "JOIN ctd.donDatXe dd " +
+            "WHERE (dd.ngayBatDau <= CURRENT_TIMESTAMP AND dd.ngayKetThuc >= CURRENT_TIMESTAMP))")
+    List<Xe> findCurrentlyBookedVehicles();
 }

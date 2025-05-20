@@ -20,5 +20,24 @@ const ApiXe = {
         const url = `/xe/deletexe/${id}`;
         return axiosclient.delete(url);
     },
+    getXeRenting: (startDate = null, endDate = null) => {
+        // Tạo đối tượng URL
+        const url = new URL('/xe/getxethue', window.location.origin);
+        
+        // Thêm các tham số nếu có
+        if (startDate) {
+            // Chuyển đổi sang định dạng ISO
+            const formattedStart = new Date(startDate).toISOString();
+            url.searchParams.append('startDate', formattedStart);
+        }
+        
+        if (endDate) {
+            // Chuyển đổi sang định dạng ISO
+            const formattedEnd = new Date(endDate).toISOString();
+            url.searchParams.append('endDate', formattedEnd);
+        }
+        
+        return axiosclient.get(url.pathname + url.search);
+    }
 }
 export default ApiXe;
