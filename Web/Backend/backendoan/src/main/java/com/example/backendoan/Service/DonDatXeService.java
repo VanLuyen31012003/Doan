@@ -7,6 +7,7 @@ import com.example.backendoan.Dto.Response.ChiTietDonDatXeReponse;
 import com.example.backendoan.Dto.Response.DonDatXeResponse;
 import com.example.backendoan.Entity.*;
 import com.example.backendoan.Enums.PhuongThucThanhToan;
+import com.example.backendoan.Enums.TrangThaiDonDatXe;
 import com.example.backendoan.Enums.TrangThaiThanhToan;
 import com.example.backendoan.Enums.TrangThaiXe;
 import com.example.backendoan.Repository.*;
@@ -102,24 +103,27 @@ public class DonDatXeService {
         }).toList();
     }
     public DonDatXeResponse getDonDatXeById(int id) {
-
         return donDatXeRepository.findById(id).map(t -> {
             Integer nguoiDungId = t.getNguoiDungId();
             String tenNguoiDung = (nguoiDungId != null) ? convertTennguoidung(nguoiDungId) : "Không xác định";
-            // so tien can thanh toan = tong tien - hoa don gia han voi trang thai thanh toan - tong tien lan dau voi trang thai thanh toan
-            BigDecimal checktongtien = BigDecimal.ZERO;
-            if(t.getTrangThaiThanhToan()== TrangThaiThanhToan.DA_THANH_TOAN.getValue()){
-                checktongtien = t.getTongTienLandau();
 
+            // Calculate the amount to be paid
+            BigDecimal checktongtien = BigDecimal.ZERO;
+            if (t.getTrangThaiThanhToan() == TrangThaiThanhToan.DA_THANH_TOAN.getValue()) {
+                checktongtien = t.getTongTienLandau();
             }
-            BigDecimal soTienCanThanhToan = t.getTongTien()
-                    .subtract(hoaDonGiaHanRepository.findByDonDatXeId(t.getDonDatXeId()).stream()
+
+            BigDecimal soTienCanThanhToan = t.getTongTien() != null ? t.getTongTien() : BigDecimal.ZERO;
+            soTienCanThanhToan = soTienCanThanhToan.subtract(
+                    hoaDonGiaHanRepository.findByDonDatXeId(t.getDonDatXeId()).stream()
                             .filter(hoaDon -> hoaDon.getTrangThaiThanhToan() == TrangThaiThanhToan.DA_THANH_TOAN.getValue())
-                            .map(hoaDon -> BigDecimal.valueOf(hoaDon.getTongTienGiaHan())) // Convert Double to BigDecimal
-                            .reduce(BigDecimal.ZERO, BigDecimal::add))
-                    .subtract(checktongtien);
+                            .map(hoaDon -> hoaDon.getTongTienGiaHan() != null ? BigDecimal.valueOf(hoaDon.getTongTienGiaHan()) : BigDecimal.ZERO)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add)
+            ).subtract(checktongtien != null ? checktongtien : BigDecimal.ZERO);
+
             return new DonDatXeResponse(
                     t.getDonDatXeId(),
+                    t.getKhachHangId(),
                     converTenkhachhang(t.getKhachHangId()),
                     tenNguoiDung,
                     t.getNgayBatDau(),
@@ -134,7 +138,12 @@ public class DonDatXeService {
                     hoaDonGiaHanRepository.findByDonDatXeId(t.getDonDatXeId()),
                     soTienCanThanhToan
             );
-        }).orElse(null);
+        }).orElseThrow(() -> new RuntimeException("Đơn đặt xe không tồn tại với ID: " + id));
+    }
+    public void deleteDonDatXe(int id) {
+        DonDatXe donDatXe = donDatXeRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn đặt xe với id: " + id));
+        donDatXeRepository.delete(donDatXe);
     }
 
     @Transactional
@@ -231,17 +240,41 @@ public class DonDatXeService {
     }
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public DonDatXeResponse updateDonDatXe(int id, DonDatXeRequest donDatXe) {
-        var context= SecurityContextHolder.getContext();
-        String name=context.getAuthentication().getName();
+        var context = SecurityContextHolder.getContext();
+        String name = context.getAuthentication().getName();
         NguoiDung nguoiDung = nguoiDungRepository.findByEmail(name).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng với email: " + name));
-        DonDatXe donDatXe1 = donDatXeRepository.findById(id).get();
+
+        DonDatXe donDatXe1 = donDatXeRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn đặt xe với id: " + id));
+
+        // Lưu trạng thái cũ
+        int oldTrangThai = donDatXe1.getTrangThai();
+
+        // Cập nhật thông tin
         donDatXe1.setNguoiDungId(nguoiDung.getNguoi_dung_id());
         donDatXe1.setTrangThai(donDatXe.getTrangThai());
         DonDatXe updatedDonDatXe = donDatXeRepository.save(donDatXe1);
 
+        // Kiểm tra nếu trạng thái thay đổi, gửi email
+        if (oldTrangThai != updatedDonDatXe.getTrangThai()) {
+            KhachHang khachHang = khachHangRepository.findById(updatedDonDatXe.getKhachHangId()).orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng với id: " + updatedDonDatXe.getKhachHangId()));
+
+            try {
+                String subject = "Cập nhật trạng thái đơn đặt xe #" + updatedDonDatXe.getDonDatXeId();
+                String body = buildEmailBody(updatedDonDatXe.getTrangThai(), updatedDonDatXe);
+
+                mailService.sendBookingConfirmationEmail(khachHang.getEmail(), subject, body);
+            } catch (MessagingException e) {
+                log.error("Failed to send booking status email: {}", e.getMessage());
+                throw new RuntimeException("Unable to send status email", e);
+            }
+        }
+
         return new DonDatXeResponse(
                 updatedDonDatXe.getDonDatXeId(),
+                null,
                 converTenkhachhang(updatedDonDatXe.getKhachHangId()),
                 convertTennguoidung(updatedDonDatXe.getNguoiDungId()),
                 updatedDonDatXe.getNgayBatDau(),
@@ -255,17 +288,46 @@ public class DonDatXeService {
                 updatedDonDatXe.getTongTienLandau(),
                 hoaDonGiaHanRepository.findByDonDatXeId(updatedDonDatXe.getDonDatXeId()),
                 null
-
         );
+    }
+    private String buildEmailBody(int trangThai, DonDatXe donDatXe) {
+        StringBuilder body = new StringBuilder();
+        body.append("Kính gửi ").append(converTenkhachhang(donDatXe.getKhachHangId())).append(",\n\n");
+        body.append("Trạng thái đơn đặt xe #").append(donDatXe.getDonDatXeId()).append(" đã được cập nhật:\n");
 
+        switch (trangThai) {
+            case 0: // CHO_XAC_NHAN
+                body.append("Trạng thái: Đang chờ xác nhận.\n");
+                body.append("Vui lòng chờ quản lý xác nhận đơn của bạn.\n");
+                break;
+            case 1: // DA_XAC_NHAN
+                body.append("Trạng thái: Đã xác nhận.\n");
+                body.append("Đơn của bạn đã được chấp thuận. Vui lòng đến nhận xe theo lịch hẹn.\n");
+                body.append("Thời gian: ").append(donDatXe.getNgayBatDau()).append(" - ").append(donDatXe.getNgayKetThuc()).append("\n");
+                break;
+            case 2: // HOAN_THANH
+                body.append("Trạng thái: Hoàn thành.\n");
+                body.append("Đơn của bạn đã hoàn tất. Cảm ơn bạn đã sử dụng dịch vụ!\n");
+                break;
+            case 3: // HUY
+                body.append("Trạng thái: Đã hủy.\n");
+                body.append("Đơn của bạn đã bị hủy. Nếu có thắc mắc, vui lòng liên hệ hỗ trợ.\n");
+                break;
+            case 4: // DANG_THUE
+                body.append("Trạng thái: Đang thuê.\n");
+                body.append("Đơn của bạn đang trong quá trình thuê. Vui lòng bảo quản xe cẩn thận.\n");
+                break;
+            default:
+                body.append("Trạng thái không xác định.\n");
+                break;
+        }
+
+        body.append("\nTrân trọng,\nĐội ngũ hỗ trợ");
+        return body.toString();
     }
-    public void deleteDonDatXe(int id) {
-        DonDatXe donDatXe = donDatXeRepository.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn đặt xe với id: " + id));
-        donDatXeRepository.delete(donDatXe);
-    }
+
     public List<DonDatXeResponse> getDonDatXeByKhachangId(Integer khachHangId) {
-        nguoiDungRepository.findById(khachHangId).orElseThrow(() ->
+        khachHangRepository.findById(khachHangId).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng với id: " + khachHangId));
         List<DonDatXe> donDatXes = donDatXeRepository.findByKhachHangId(khachHangId);
         return donDatXes.stream().map(donDatXe -> DonDatXeResponse.builder()
@@ -277,6 +339,11 @@ public class DonDatXeService {
                 .tongTien(donDatXe.getTongTien())
                 .trangThai(donDatXe.getTrangThai())
                 .diaDiemNhanXe(donDatXe.getDiaDiemNhanXe())
+                .phuongThucThanhToan(donDatXe.getPhuongThucThanhToan())
+                .trangThaiThanhToan(donDatXe.getTrangThaiThanhToan())
+                .tongTienLandau(donDatXe.getTongTienLandau())
+                .hoaDonGiaHan(hoaDonGiaHanRepository.findByDonDatXeId(donDatXe.getDonDatXeId()))
+
 //                .chiTiet(convertchitet(donDatXe.getChiTiet()))
                 .build()).collect(Collectors.toList());
     }
@@ -307,10 +374,11 @@ public class DonDatXeService {
         if (chiTiet.isEmpty()) {
             throw new IllegalArgumentException("Chi tiết đơn không tồn tại");
         }
-        //lay danh sach cac gia han
+
+        // Kiểm tra danh sách các hóa đơn gia hạn
         List<HoaDonGiaHan> hoaDonGiaHans = hoaDonGiaHanRepository.findByDonDatXeId(donDatXeId);
         if (hoaDonGiaHans != null && !hoaDonGiaHans.isEmpty()) {
-                    throw new IllegalArgumentException("Không thể gia hạn thêm, vui lòng hoàn trả xe đúng thời hạn");
+            throw new IllegalArgumentException("Không thể gia hạn thêm, vui lòng hoàn trả xe đúng thời hạn");
         }
 
         List<Integer> xeIds = chiTiet.stream().map(ChiTietDonDatXe::getXeId).collect(Collectors.toList());
@@ -320,31 +388,31 @@ public class DonDatXeService {
         if (newEndDate.isBefore(currentEndDate)) {
             throw new IllegalArgumentException("Ngày kết thúc mới phải lớn hơn ngày kết thúc hiện tại");
         }
-       for(Integer xeId :xeIds){
-           List<DonDatXe> conflictingBookings = donDatXeRepository.findConflictingBookings(
-                   xeId, currentEndDate, newEndDate);
-           if (!conflictingBookings.isEmpty()) {
-               throw new IllegalArgumentException("Xe đã được đặt trước vào khoảng thời gian này ");
-           }
-       }
+
+        for (Integer xeId : xeIds) {
+            List<DonDatXe> conflictingBookings = donDatXeRepository.findConflictingBookings(
+                    xeId, currentEndDate, newEndDate);
+            if (!conflictingBookings.isEmpty()) {
+                throw new IllegalArgumentException("Xe với biển số: " + xeRepository.findById(xeId).get().getBienSo() + " đã có người đặt trước vào khoảng thời gian gia hạn");
+            }
+        }
+
         long daysExtended = java.time.temporal.ChronoUnit.DAYS.between(currentEndDate, newEndDate);
-       Double tongTienGiaHan =0.0;
+        Double tongTienGiaHan = 0.0;
+
         for (ChiTietDonDatXe chiTiet1 : chiTiet) {
             Integer xeId = chiTiet1.getXeId();
-            MauXe mauXe =xeRepository.findById(xeId).get().getMauXe();
+            MauXe mauXe = xeRepository.findById(xeId).get().getMauXe();
             Double giaThueNgay = mauXe.getGiaThueNgay();
             Double tongTienGiaHanSon = giaThueNgay * daysExtended;
             tongTienGiaHan += tongTienGiaHanSon;
         }
-        // Cập nhật trạng thái xe
-
 
         // Cập nhật đơn đặt xe
         donDatXe.setNgayKetThuc(newEndDate);
         BigDecimal tongTienGiaHanDecimal = BigDecimal.valueOf(tongTienGiaHan);
-
         donDatXe.setTongTien(donDatXe.getTongTien().add(tongTienGiaHanDecimal));
-        donDatXeRepository.save(donDatXe);
+        DonDatXe updatedDonDatXe = donDatXeRepository.save(donDatXe);
 
         // Tạo hóa đơn gia hạn
         HoaDonGiaHan hoaDonGiaHan = HoaDonGiaHan.builder()
@@ -356,6 +424,28 @@ public class DonDatXeService {
                 .phuongThucThanhToan(null) // Chưa có phương thức
                 .build();
         hoaDonGiaHanRepository.save(hoaDonGiaHan);
+
+        // Gửi email xác nhận gia hạn
+        try {
+            KhachHang khachHang = khachHangRepository.findById(donDatXe.getKhachHangId())
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy thông tin khách hàng"));
+            String subject = "Xác nhận gia hạn đơn đặt xe #" + updatedDonDatXe.getDonDatXeId();
+            String body = String.format(
+                    "Kính gửi %s,\n\nĐơn đặt xe #%d của bạn đã được gia hạn thành công.\n" +
+                            "Thời gian kết thúc mới: %s\n" +
+                            "Chi phí gia hạn: %s VNĐ\n" +
+                            "Tổng tiền đơn hàng: %s VNĐ\n\nTrân trọng,\nĐội ngũ hỗ trợ",
+                    khachHang.getHoTen(),
+                    updatedDonDatXe.getDonDatXeId(),
+                    updatedDonDatXe.getNgayKetThuc().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                    tongTienGiaHan.toString(),
+                    updatedDonDatXe.getTongTien().toString()
+            );
+            mailService.sendBookingConfirmationEmail(khachHang.getEmail(), subject, body);
+        } catch (MessagingException e) {
+            log.error("Failed to send extension confirmation email: {}", e.getMessage());
+            throw new RuntimeException("Không thể gửi email xác nhận gia hạn", e);
+        }
 
         return tongTienGiaHan;
     }

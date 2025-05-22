@@ -9,7 +9,7 @@ import {
   Input,
   DatePicker,
   message,
-  Alert,
+
 } from "antd";
 import {
   SearchOutlined,
@@ -21,7 +21,6 @@ import {
 import moment from "moment";
 import ApiDonDat from "../../Api/ApiDonDat";
 import { toast } from "react-toastify";
-import OrderDetailModal from "./OrderDetailModal";
 import { useNavigate } from "react-router-dom";
 
 const { Title } = Typography;
@@ -43,8 +42,6 @@ const ManageOrders = () => {
   const [searchText, setSearchText] = useState("");
   const [dateRange, setDateRange] = useState(null);
   const [statusFilter, setStatusFilter] = useState(null);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -235,7 +232,7 @@ const ManageOrders = () => {
           >
             Chi tiết
           </Button>
-
+    
           {record.trangThai === ORDER_STATUS.CHO_XAC_NHAN && (
             <>
               <Button
@@ -268,22 +265,36 @@ const ManageOrders = () => {
               </Button>
             </>
           )}
-
+    
           {record.trangThai === ORDER_STATUS.DA_XAC_NHAN && (
-            <Button
-              type="default"
-              size="small"
-              icon={<CarOutlined />}
-              onClick={() =>
-                handleStatusChange(record.donDatXeId, ORDER_STATUS.DANG_THUE)
-              }
-              loading={confirmLoading}
-              style={{ width: "100%" }}
-            >
-              Giao xe
-            </Button>
+            <>
+              <Button
+                type="default"
+                size="small"
+                icon={<CarOutlined />}
+                onClick={() =>
+                  handleStatusChange(record.donDatXeId, ORDER_STATUS.DANG_THUE)
+                }
+                loading={confirmLoading}
+                style={{ width: "100%" }}
+              >
+                Giao xe
+              </Button>
+              <Button
+                danger
+                size="small"
+                icon={<CloseCircleOutlined />}
+                onClick={() =>
+                  handleStatusChange(record.donDatXeId, ORDER_STATUS.HUY)
+                }
+                loading={confirmLoading}
+                style={{ width: "100%" }}
+              >
+                Hủy
+              </Button>
+            </>
           )}
-
+    
           {record.trangThai === ORDER_STATUS.DANG_THUE && (
             <Button
               type="default"
@@ -299,7 +310,7 @@ const ManageOrders = () => {
           )}
         </Space>
       ),
-    },
+    }
   ];
 
   return (

@@ -1,16 +1,24 @@
 import axiosclient from "./AxiosClient";
 const ApiKhachHang = {
-    getinfo:() => {
-        const url = '/khachhang/getmyinfo';
+    getAllKhachHang: () => {
+        const url = "/khachhang/getallkhachhang";
         return axiosclient.get(url);
     },
-    register: (user) => {
-        const url = '/khachhang/registerkhachhang';
-        return axiosclient.post(url,user);
+    getKhachHangById: (id) => {
+        const url = `/khachhang/getkhachhang/${id}`;
+        return axiosclient.get(url);
+    },  
+    updateKhachHang: (id, data) => {
+        const url = `/khachhang/updatekhachhang/${id}`;
+        return axiosclient.put(url, data);
     },
-    login:(user) => {
-        const url = '/auth/loginbykhachhang';
-        return axiosclient.post(url,user);
-    }
+    deleteKhachHang: (id) => {
+        const url = `/khachhang/deletekhachhang/${id}`;
+        return axiosclient.delete(url);
+    },
+    getDonDatByidKhachHang: (id) => {
+        const url = `/dondatxe/getdonbykhachhang/${id}`;
+        return axiosclient.get(url);
+    },
 };
 export default ApiKhachHang;

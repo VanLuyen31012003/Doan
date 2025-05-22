@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Table, DatePicker, Button, Tag, Typography, Input, Image, Badge, Tooltip, Spin, Empty, Space } from 'antd';
-import { SearchOutlined, CalendarOutlined, ReloadOutlined, CarOutlined } from '@ant-design/icons';
+import { SearchOutlined, CalendarOutlined, ReloadOutlined,  } from '@ant-design/icons';
 import { FaMotorcycle } from "react-icons/fa6";
 import ApiXe from '../../Api/ApiXe';
 import VehicleOrderModal from './VehicleOrderModal';
@@ -14,7 +14,8 @@ export default function XeRenting() {
   const [searchText, setSearchText] = useState('');
   const [dateRange, setDateRange] = useState(null);
   const [isOrderModalVisible, setIsOrderModalVisible] = useState(false);
-  const [selectedXeId, setSelectedXeId] = useState(null);
+    const [selectedXeId, setSelectedXeId] = useState(null);
+
 
   // Lấy danh sách xe đang cho thuê
   const fetchVehiclesRenting = async (startDate = null, endDate = null) => {

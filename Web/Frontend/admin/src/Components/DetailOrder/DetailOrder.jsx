@@ -408,8 +408,15 @@ const DetailOrder = () => {
           <Text strong>{order.donDatXeId}</Text>
         </Descriptions.Item>
         <Descriptions.Item label="Khách hàng" span={2}>
-          <UserOutlined /> {order.khachHangName}
-        </Descriptions.Item>
+  <div 
+    className="flex items-center cursor-pointer text-blue-600 hover:text-blue-800"
+    onClick={() => navigate(`/dashboard/khachang/${order.idKhachHang}`)}
+  >
+    <UserOutlined className="mr-2" />
+    <Text strong className="hover:underline">{order.khachHangName}</Text>
+    <span className="ml-1 text-xs text-gray-500">(Click để xem chi tiết)</span>
+  </div>
+</Descriptions.Item>
         <Descriptions.Item label="Người xử lý" span={2}>
           {order.nguoiDungName || "Chưa có"}
         </Descriptions.Item>

@@ -41,4 +41,14 @@ public class MailService {
 
         // Gửi email
         mailSender.send(message);
-    }}
+    }
+    public void sendBookingConfirmationEmail(String to, String subject, String body) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(body, true); // true để hỗ trợ HTML nếu cần
+        mailSender.send(message);
+    }
+
+}

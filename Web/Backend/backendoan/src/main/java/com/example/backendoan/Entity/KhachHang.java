@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -30,6 +31,12 @@ public class KhachHang {
 
     @Column(name = "mat_khau", nullable = false)
     private String matKhau;
+    @Column(name = "dia_chi")
+    private String diaChi;
+    @Column(name = "so_cccd", unique = true)
+    private String soCccd;
+    @Column(name = "ngay_tao")
+    private LocalDateTime ngayTao;
 //    @OneToMany(mappedBy = "khachHang", cascade = CascadeType.ALL)
 //    private List<DonDatXe> donDatXes;
 

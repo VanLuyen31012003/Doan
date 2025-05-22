@@ -18,6 +18,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class DonDatXeResponse {
      Integer donDatXeId;
+     Integer idKhachHang;
      String khachHangName;
      String nguoiDungName;
      LocalDateTime ngayBatDau;

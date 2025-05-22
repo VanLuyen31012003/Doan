@@ -17,6 +17,8 @@ import ManageUsers from '../Components/ManageUsers/ManageUsers';
 import ManageXe from '../Components/ManageXe/ManageXe';
 import ManageChat from '../Components/ManageChart/MangageChat';
 import DetailOrder from '../Components/DetailOrder/DetailOrder';
+import ManageKhachHang from '../Components/ManageKhachHang/ManageKhachHang';
+import InfoKhachHang from '../Components/ManageKhachHang/InfoKhachHang';
 
 const { Header, Sider, Content } = Layout;
 
@@ -34,6 +36,7 @@ const Dashboard = () => {
     if (path.includes('/dashboard/users')) return 'users';
     if (path.includes('/dashboard/orders')) return 'orders';
     if (path.includes('/dashboard/xe')) return 'xe';
+    if (path.includes('/dashboard/khachang')) return 'customer';
     if (path.includes('/dashboard/doanhthu')) return 'doanhthu';
     return 'dashboard'; // Default
   };
@@ -68,6 +71,9 @@ const Dashboard = () => {
       case 'doanhthu':
         navigate('/dashboard/doanhthu');
         break;
+        case 'customer':
+          navigate('/dashboard/khachang');
+          break;
       default:
         navigate('/dashboard');
     }
@@ -91,6 +97,9 @@ const Dashboard = () => {
           </Menu.Item>
           <Menu.Item key="vehicles" icon={<FaMotorcycle />}>
             Quản lý mẫu xe
+          </Menu.Item>
+          <Menu.Item key="customer" icon={<UserOutlined />}>
+            Quản lý khách hàng
           </Menu.Item>
           <Menu.Item key="users" icon={<UserOutlined />}>
             Người dùng
@@ -125,6 +134,8 @@ const Dashboard = () => {
             <Routes>
               <Route path="/" element={<ManageChat />} />
               <Route path="/mauxe" element={<ManageMauxe />} />
+              <Route path="/khachang" element={<ManageKhachHang />} />
+              <Route path="/khachang/:id" element={<InfoKhachHang />} />
               <Route path="/users" element={<ManageUsers />} />
               <Route path="/orders" element={<ManageOrders />} />
               <Route path="/xe" element={<ManageXe />} />
