@@ -3,7 +3,6 @@ import Footer from "./Components/Footer";
 import Navbar from "./Components/Navbar";
 import Allpoducts from "./Pages/Allpoducts";
 import Bangia from "./Pages/Bangia";
-import ContactPage from "./Pages/Contact";
 import RentalForm from "./Pages/Datxe";
 import Detailproduct from "./Pages/Detailproduct";
 import Home from "./Pages/Home";
@@ -16,8 +15,8 @@ import Cart from "./Pages/Cart";
 import { ToastContainer } from "react-toastify";
 import Detailorder from "./Pages/Detailorder";
 import PaymentResult from "./Pages/PaymentResult";
-import Contact from "./Pages/Contact";
 import ConTact from "./Pages/Contact";
+import EditProfile from "./Pages/EditProfile";
 
 function App() {
   return (
@@ -35,6 +34,7 @@ function App() {
         <Route path="/infouser" element={<Infouser />} />
         <Route path="/yeuthich" element={<Cart />} />
         <Route path="/payment-result" element={<PaymentResult />} />
+        <Route path="/edit-profile" element={<EditProfile/>} />
         <Route path="/chitietdondat/:id" element={<Detailorder />} />
       </Routes>
       <ToastContainer

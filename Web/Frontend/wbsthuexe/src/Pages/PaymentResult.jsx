@@ -219,7 +219,7 @@ function PaymentResult() {
             to ={`/chitietdondat/${txnRef}`}
             className="bg-white border  border-blue-600 text-ghi py-3 px-6 rounded-lg hover:bg-blue-200 transition duration-300 text-center font-semibold flex-1"
           >
-            Xem đơn hàng
+            Xem đơn đặt
           </Link>
           )}
           

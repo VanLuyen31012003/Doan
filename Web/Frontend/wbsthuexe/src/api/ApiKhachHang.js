@@ -12,6 +12,12 @@ const ApiKhachHang = {
     login:(user) => {
         const url = '/auth/loginbykhachhang';
         return axiosclient.post(url,user);
-    }
+    },
+    updateInfo: (user) => {
+        const url = '/khachhang/updateinfo';
+        return axiosclient.put(url,user);
+    },
+
+    
 };
 export default ApiKhachHang;

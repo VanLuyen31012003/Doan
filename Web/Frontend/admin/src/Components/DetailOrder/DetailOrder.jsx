@@ -140,22 +140,18 @@ const DetailOrder = () => {
   
   // Cập nhật trạng thái đơn hàng
   const handleStatusChange = async (newStatus) => {
-    confirm({
-      title: `Xác nhận thay đổi trạng thái`,
-      content: `Bạn có chắc chắn muốn chuyển đơn hàng #${id} sang trạng thái ${statusMap[newStatus]}?`,
-      okText: 'Xác nhận',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await ApiDonDat.updateDonDat(id, { trangThai: newStatus });
-          toast.success(`Đã cập nhật trạng thái đơn hàng #${id} thành công`);
-          fetchOrder();
-        } catch (error) {
-          console.error("Error updating order status:", error);
-          toast.error("Có lỗi khi cập nhật trạng thái đơn hàng");
-        }
-      },
-    });
+    const isConfirmed = window.confirm(`Bạn có chắc chắn muốn chuyển đơn hàng #${id} sang trạng thái ${statusMap[newStatus]}?`);
+    
+    if (isConfirmed) {
+      try {
+        await ApiDonDat.updateDonDat(id, { trangThai: newStatus });
+        toast.success(`Đã cập nhật trạng thái đơn hàng #${id} thành công`);
+        fetchOrder();
+      } catch (error) {
+        console.error("Error updating order status:", error);
+        toast.error("Có lỗi khi cập nhật trạng thái đơn hàng");
+      }
+    }
   };
   
   // Định dạng ngày tháng
@@ -329,14 +325,24 @@ const DetailOrder = () => {
             </>
           )}
           {order.trangThai === ORDER_STATUS.DA_XAC_NHAN && (
-            <Button
-              type="primary"
-              icon={<CarOutlined />}
-              onClick={() => handleStatusChange(ORDER_STATUS.DANG_THUE)}
-            >
-              Giao xe
-            </Button>
-          )}
+  <>
+    <Button
+      type="primary"
+      icon={<CarOutlined />}
+      onClick={() => handleStatusChange(ORDER_STATUS.DANG_THUE)}
+    >
+      Giao xe
+    </Button>
+    {/* Thêm nút hủy đơn */}
+    <Button
+      danger
+      icon={<CloseCircleOutlined />}
+      onClick={() => handleStatusChange(ORDER_STATUS.HUY)}
+    >
+      Hủy đơn
+    </Button>
+  </>
+)}
           {order.trangThai === ORDER_STATUS.DANG_THUE && (
             <>
               <Button

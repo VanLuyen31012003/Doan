@@ -51,6 +51,13 @@ public class KhachHangController {
                 .data(khachHangService.updateKhachHang(id, khachHangReponse))
                 .build();
     }
+    @PutMapping("/updateinfo")
+    public ApiResponse<?> updateKhachHang( @RequestBody KhachHangReponse khachHangReponse) {
+        return ApiResponse.<Object>builder()
+                .message("Cập nhật khách hàng thành công")
+                .data(khachHangService.updateinfo( khachHangReponse))
+                .build();
+    }
     //lay thong tin khach hang qua id
     @GetMapping("/getkhachhang/{id}")
     public ApiResponse<?> getKhachHangById(@PathVariable int id) {

@@ -32,6 +32,7 @@ public class KhachHangService {
                 .matKhau(khachHang1.getMatKhau())
                 .diaChi(khachHang1.getDiaChi())
                 .soCccd(khachHang1.getSoCccd())
+                .ngayTao(khachHang1.getNgayTao())
                 .build();
     }
     //lay all khach hang
@@ -88,6 +89,34 @@ public class KhachHangService {
         khachHang.setEmail(khachHangReponse.getEmail());
         khachHang.setSoDienThoai(khachHangReponse.getSoDienThoai());
         khachHang.setMatKhau(khachHangReponse.getMatKhau());
+        khachHang.setDiaChi(khachHangReponse.getDiaChi());
+        khachHang.setSoCccd(khachHangReponse.getSoCccd());
+        khachHangRepository.save(khachHang);
+        return KhachHangReponse.builder()
+                .id(khachHang.getKhachHangId())
+                .hoTen(khachHang.getHoTen())
+                .email(khachHang.getEmail())
+                .soDienThoai(khachHang.getSoDienThoai())
+                .matKhau(khachHang.getMatKhau())
+                .diaChi(khachHang.getDiaChi())
+                .soCccd(khachHang.getSoCccd())
+                .build();
+    }
+    public KhachHangReponse updateinfo( KhachHangReponse khachHangReponse) {
+        var context = SecurityContextHolder.getContext();
+        String name = context.getAuthentication().getName();
+        Optional<KhachHang> khachHangOptional = khachHangRepository.findByEmail(name);
+        KhachHang khachHang = khachHangOptional.orElseThrow(() ->
+                new RuntimeException("Không tìm thấy khách hàng với email: " + name));
+        if (khachHang == null) {
+            throw new RuntimeException("Khách hàng không tồn tại");
+        }
+        khachHang.setHoTen(khachHangReponse.getHoTen());
+        khachHang.setEmail(khachHangReponse.getEmail());
+        khachHang.setSoDienThoai(khachHangReponse.getSoDienThoai());
+        if(khachHangReponse.getMatKhau() != null) {
+            khachHang.setMatKhau(khachHangReponse.getMatKhau());
+        }
         khachHang.setDiaChi(khachHangReponse.getDiaChi());
         khachHang.setSoCccd(khachHangReponse.getSoCccd());
         khachHangRepository.save(khachHang);

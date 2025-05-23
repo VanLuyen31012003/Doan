@@ -2,7 +2,11 @@ package com.example.backendoan.Controller;
 
 import com.example.backendoan.Configuration.Vnpayconfig;
 import com.example.backendoan.Entity.DonDatXe;
+import com.example.backendoan.Repository.ChiTietDonDatXeRepository;
 import com.example.backendoan.Repository.DonDatXeRepository;
+import com.example.backendoan.Repository.KhachHangRepository;
+import com.example.backendoan.Service.MailService;
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +29,13 @@ import java.util.*;
 public class PaymentController {
     @Autowired
     DonDatXeRepository donDatXeRepository;
+    @Autowired
+    MailService mailService;
+    @Autowired
+    ChiTietDonDatXeRepository chiTietDonDatXeRepository;
+    @Autowired
+    KhachHangRepository khachHangRepository;
+
     @GetMapping("/api/payment/create")
     public ResponseEntity<?> createPayment(HttpServletRequest request,
                                             @RequestParam("amount") String amount,
@@ -132,6 +143,16 @@ public class PaymentController {
                         .orElseThrow(() -> new RuntimeException("Order not found"));
                 donDatXe.setTrangThaiThanhToan(1);
                 donDatXeRepository.save(donDatXe);
+                try {
+                    String email = khachHangRepository.findById(donDatXe.getKhachHangId())
+                            .get()
+                            .getEmail();
+
+                    mailService.sendBookingConfirmationEmail(email, donDatXe, chiTietDonDatXeRepository.findByDonDatXe_DonDatXeId(donDatXe.getDonDatXeId()));
+                } catch (MessagingException e) {
+                    System.out.println("Error sending email: " + e.getMessage());
+                }
+
                 redirectUrl = String.format("%s?status=success&message=%s&txnRef=%s&amount=%s&transactionDate=%s&username=%s",
                         frontendUrl,
                         URLEncoder.encode("Thanh toán thành công", StandardCharsets.UTF_8),

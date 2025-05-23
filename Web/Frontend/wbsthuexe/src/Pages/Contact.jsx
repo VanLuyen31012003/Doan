@@ -340,7 +340,7 @@ const Chat = () => {
         <p>© 2025 MOTOVIP - Hệ thống thuê xe hàng đầu Việt Nam</p>
       </div>
       
-      <ToastContainer />
+      {/* <ToastContainer /> */}
     </div>
   );
 };

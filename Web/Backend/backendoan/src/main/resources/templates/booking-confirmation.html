@@ -13,26 +13,29 @@
             padding: 0;
         }
         .container {
-            width: 80%;
-            max-width: 600px; /* Giới hạn tối đa để email không quá rộng */
+            width: 90%;
+            max-width: 650px;
             margin: 20px auto;
             background-color: #fff;
-            padding: 20px;
+            padding: 25px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            word-break: break-word; /* Cho phép ngắt từ khi văn bản dài */
-            overflow-wrap: break-word; /* Xử lý ngắt từ trong email client */
+            word-break: break-word;
         }
         h2 {
             color: #2c3e50;
             text-align: center;
+            margin-bottom: 20px;
         }
         h3 {
             color: #34495e;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-top: 25px;
         }
         p {
             margin: 10px 0;
-            word-break: break-word; /* Đảm bảo p cũng ngắt dòng */
+            word-break: break-word;
         }
         .highlight {
             font-weight: bold;
@@ -40,11 +43,26 @@
         }
         .detail-box {
             border: 1px solid #ddd;
-            padding: 10px;
-            margin: 10px 0;
+            padding: 15px;
+            margin: 15px 0;
             border-radius: 5px;
             background-color: #f9f9f9;
             word-break: break-word;
+        }
+        .vehicle-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .order-info {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        .price {
+            font-weight: bold;
+            color: #e74c3c;
         }
         hr {
             border: 0;
@@ -53,61 +71,153 @@
         }
         .footer {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 30px;
             color: #777;
+            font-size: 14px;
         }
         .logo {
             text-align: center;
             margin-bottom: 20px;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            background-color: #3498db;
+            color: white;
+        }
+        .payment-pending {
+            background-color: #f39c12;
+        }
+        .payment-complete {
+            background-color: #27ae60;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 15px 0;
+        }
+        .vehicle-image {
+            width: 100%;
+            height: auto;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table th, table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        table th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="logo">
-        <img src="https://firebasestorage.googleapis.com/v0/b/vocabtoeic-23b22.appspot.com/o/MOTO_VIP.png?alt=media&token=d62496c8-d589-4545-b172-aa68b972c713" alt="Logo" style="max-width: 150px;" />
+        <img src="https://firebasestorage.googleapis.com/v0/b/vocabtoeic-23b22.appspot.com/o/MOTO_VIP.png?alt=media&token=d62496c8-d589-4545-b172-aa68b972c713" alt="Logo MotoVip" style="max-width: 180px;" />
     </div>
-    <h2>Xác nhận đặt xe thành công</h2>
-    <p>Cảm ơn bạn đã đặt xe tại hệ thống của chúng tôi!</p>
 
-    <h3>Thông tin đơn đặt xe</h3>
-    <p><span class="highlight">Mã đơn:</span> <span th:text="${donDatXe.donDatXeId}"></span></p>
+    <h2>Xác nhận đặt xe thành công</h2>
+
+    <div class="order-info">
+        <p>Kính gửi <span th:text="${khachHangName != null ? khachHangName : 'Quý khách'}"></span>,</p>
+        <p>Cảm ơn bạn đã đặt xe tại MotoVip. Đơn đặt xe của bạn đã được xác nhận thành công!</p>
+        </div>
+
+    <h3>Thông tin đơn đặt</h3>
+    <p><span class="highlight">Mã đơn:</span> <span th:text="${'#' + donDatXe.donDatXeId}"></span></p>
     <p><span class="highlight">Ngày bắt đầu:</span>
-        <span th:text="${#temporals.format(donDatXe.ngayBatDau, 'yyyy-MM-dd')} ?: 'Chưa xác định'"></span>
+        <span th:text="${#temporals.format(donDatXe.ngayBatDau, 'dd/MM/yyyy HH:mm')} ?: 'Chưa xác định'"></span>
     </p>
     <p><span class="highlight">Ngày kết thúc:</span>
-        <span th:text="${#temporals.format(donDatXe.ngayKetThuc, 'yyyy-MM-dd')} ?: 'Chưa xác định'"></span>
-    </p>
-    <p><span class="highlight">Tổng tiền:</span> <span th:text="${donDatXe.tongTien}"></span> VNĐ</p>
-    <p><span class="highlight">Trạng thái:</span>
-        <span th:if="${donDatXe.trangThai == 0}">Chờ xác nhận</span>
+        <span th:text="${#temporals.format(donDatXe.ngayKetThuc, 'dd/MM/yyyy HH:mm')} ?: 'Chưa xác định'"></span>
     </p>
     <p><span class="highlight">Địa điểm nhận xe:</span> <span th:text="${donDatXe.diaDiemNhanXe}"></span></p>
-    <p><span class="highlight">Phương thức thanh toán:</span> <span th:text="${donDatXe.phuongThucThanhToan} ?: 'Chưa chọn'"></span></p>
-    <p><span class="highlight">Trạng thái thanh toán:</span>
-        <span th:switch="${donDatXe.trangThaiThanhToan}">
-        <span th:case="0">Chưa thanh toán</span>
-        <span th:case="1">Đã thanh toán</span>
-        <span th:case="*">Không xác định</span>
-    </span>
+    <p><span class="highlight">Phương thức thanh toán:</span>
+        <span th:if="${donDatXe.phuongThucThanhToan == 'Tiền mặt'}">Tiền mặt</span>
+        <span th:if="${donDatXe.phuongThucThanhToan == 'Chuyển khoản'}">Chuyển khoản</span>
+        <span th:if="${donDatXe.phuongThucThanhToan == null}">Chưa chọn</span>
     </p>
 
-    <h3>Chi tiết xe</h3>
+    <p>
+        <span class="highlight">Trạng thái thanh toán:</span>
+        <span class="status" th:classappend="${donDatXe.trangThaiThanhToan == 1 ? 'payment-complete' : 'payment-pending'}">
+            <span th:if="${donDatXe.trangThaiThanhToan == 0}">Chưa thanh toán</span>
+            <span th:if="${donDatXe.trangThaiThanhToan == 1}">Đã thanh toán</span>
+        </span>
+    </p>
+
+    <div class="divider"></div>
+
+    <h3>Thông tin xe</h3>
     <div th:each="chiTiet : ${chiTietDonDatXes}" class="detail-box">
-        <p><span class="highlight">Xe ID:</span> <span th:text="${chiTiet.xeId}"></span></p>
-        <p><span class="highlight">Số ngày thuê:</span> <span th:text="${chiTiet.soNgayThue}"></span></p>
-        <p><span class="highlight">Thành tiền:</span> <span th:text="${chiTiet.thanhTien}"></span> VNĐ</p>
+        <div class="vehicle-info">
+            <p><span class="highlight">Tên xe:</span> <span th:text="${chiTiet.xe.mauXe.tenMau}"></span></p>
+            <p><span class="highlight">Biển số:</span> <span th:text="${chiTiet.xe.bienSo}"></span></p>
+            <p><span class="highlight">Số ngày thuê:</span> <span th:text="${chiTiet.soNgayThue}"></span> ngày</p>
+            <p><span class="highlight">Giá thuê ngày:</span> <span th:text="${#numbers.formatDecimal(chiTiet.xe.mauXe.giaThueNgay, 0, 'COMMA', 0, 'POINT')}"></span> VNĐ/ngày</p>
+            <p><span class="highlight">Thành tiền:</span> <span class="price" th:text="${#numbers.formatDecimal(chiTiet.thanhTien, 0, 'COMMA', 0, 'POINT')}"></span> VNĐ</p>
+        </div>
     </div>
 
-    <hr>
+    <div class="divider"></div>
 
-    <p>Vui lòng liên hệ chúng tôi nếu bạn cần hỗ trợ thêm.</p>
-    <p class="highlight">Gmail: MotoVip@gmail.com</p>
-    <p class="highlight">Số điện thoại: 0948310103</p>
+    <table>
+        <tr>
+            <th>Chi tiết thanh toán</th>
+            <th>Số tiền (VNĐ)</th>
+        </tr>
+        <tr th:each="chiTiet : ${chiTietDonDatXes}">
+            <td th:text="${chiTiet.xe.mauXe.tenMau + ' x ' + chiTiet.soNgayThue + ' ngày'}"></td>
+            <td th:text="${#numbers.formatDecimal(chiTiet.thanhTien, 0, 'COMMA', 0, 'POINT')}"></td>
+        </tr>
+        <tr>
+            <td style="font-weight: bold;">Tổng tiền</td>
+            <td class="price" th:text="${#numbers.formatDecimal(donDatXe.tongTien, 0, 'COMMA', 0, 'POINT')}"></td>
+        </tr>
+    </table>
 
+    <div class="divider"></div>
 
-    <div class="footer highlight">
-        <p class="highlight">Trân trọng,<br>Hệ thống đặt xe MoVip</p>
+    <h3>Trạng thái đơn đặt</h3>
+    <p>
+        <span class="status"
+              th:classappend="${donDatXe.trangThai == 0 ? 'payment-pending' :
+                              (donDatXe.trangThai == 1 ? 'payment-complete' :
+                              (donDatXe.trangThai == 4 ? 'payment-complete' : ''))}">
+            <span th:if="${donDatXe.trangThai == 0}">Chờ xác nhận</span>
+            <span th:if="${donDatXe.trangThai == 1}">Đã xác nhận</span>
+            <span th:if="${donDatXe.trangThai == 2}">Hoàn thành</span>
+            <span th:if="${donDatXe.trangThai == 3}">Đã hủy</span>
+            <span th:if="${donDatXe.trangThai == 4}">Đang thuê</span>
+        </span>
+    </p>
+
+    <div th:if="${donDatXe.trangThaiThanhToan == 0}">
+        <h3>Thông tin chuyển khoản</h3>
+        <p>Nếu bạn chọn thanh toán bằng chuyển khoản, vui lòng chuyển khoản đến:</p>
+        <p><span class="highlight">Số tài khoản:</span> 123456789</p>
+        <p><span class="highlight">Ngân hàng:</span> VCB - Ngân hàng TMCP Ngoại thương Việt Nam</p>
+        <p><span class="highlight">Chủ tài khoản:</span> Công ty TNHH MotoVip</p>
+        <p><span class="highlight">Nội dung chuyển khoản:</span> <span th:text="${'MOTOVIP ' + donDatXe.donDatXeId}"></span></p>
+    </div>
+
+    <div class="footer">
+        <p>Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ chúng tôi tại:</p>
+        <p>Email: <a href="mailto:MotoVip2003@gmail.com">MotoVip2003@gmail.com</a> | Hotline: 0948.310.103</p>
+        <p>Địa chỉ: 280 An Dương Vương, P.4, Q.5, TP.HCM</p>
+        <p>© 2025 MotoVip. Tất cả các quyền được bảo lưu.</p>
     </div>
 </div>
 </body>

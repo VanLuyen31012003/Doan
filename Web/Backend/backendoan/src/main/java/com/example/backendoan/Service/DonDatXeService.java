@@ -186,7 +186,12 @@ public class DonDatXeService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Đã có người đặt xe trước vào thời gian này");
             }
             MauXe mauXe = mauXeRepository.findById(chiTietRequest.getMauXeId()).get();
-            mauXe.setSoluotdat(mauXe.getSoluotdat() + 1);
+            Integer currentSoLuotDat = mauXe.getSoluotdat();
+if (currentSoLuotDat == null) {
+    mauXe.setSoluotdat(1); // Nếu null thì đặt thành 1 (đây là lượt đặt đầu tiên)
+} else {
+    mauXe.setSoluotdat(currentSoLuotDat + 1); // Nếu không null thì tăng thêm 1
+}
             mauXeRepository.save(mauXe);
             ChiTietDonDatXe chiTiet = ChiTietDonDatXe.builder()
                     .xeId(selectedXe.getXeId())
@@ -218,7 +223,6 @@ public class DonDatXeService {
                 mailService.sendBookingConfirmationEmail(khachHang.getEmail(), d, chiTietDonDatXes);
             } catch (MessagingException e) {
                 log.error("Failed to send booking confirmation email: {}", e.getMessage());
-                throw new RuntimeException("Unable to send confirmation email", e);
             }
 
         }
@@ -322,7 +326,7 @@ public class DonDatXeService {
                 break;
         }
 
-        body.append("\nTrân trọng,\nĐội ngũ hỗ trợ");
+        body.append("\nTrân trọng,\nĐội ngũ hỗ trợ MOTOVIP SĐT: 0948310103");
         return body.toString();
     }
 
@@ -434,7 +438,7 @@ public class DonDatXeService {
                     "Kính gửi %s,\n\nĐơn đặt xe #%d của bạn đã được gia hạn thành công.\n" +
                             "Thời gian kết thúc mới: %s\n" +
                             "Chi phí gia hạn: %s VNĐ\n" +
-                            "Tổng tiền đơn hàng: %s VNĐ\n\nTrân trọng,\nĐội ngũ hỗ trợ",
+                            "Tổng tiền đơn hàng: %s VNĐ\n\nTrân trọng,\nĐội ngũ hỗ trợ MOTOVIP, SĐT: 0948310103 "  ,
                     khachHang.getHoTen(),
                     updatedDonDatXe.getDonDatXeId(),
                     updatedDonDatXe.getNgayKetThuc().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
@@ -444,7 +448,6 @@ public class DonDatXeService {
             mailService.sendBookingConfirmationEmail(khachHang.getEmail(), subject, body);
         } catch (MessagingException e) {
             log.error("Failed to send extension confirmation email: {}", e.getMessage());
-            throw new RuntimeException("Không thể gửi email xác nhận gia hạn", e);
         }
 
         return tongTienGiaHan;
@@ -467,4 +470,4 @@ public class DonDatXeService {
                 .build()).collect(Collectors.toList());
 
     }
-}
+ }
