@@ -291,7 +291,7 @@ function Register(props) {
           </button>
         </form>
       </div>
-      <ToastContainer />
+      {/* <ToastContainer /> */}
     </>
   );
 }

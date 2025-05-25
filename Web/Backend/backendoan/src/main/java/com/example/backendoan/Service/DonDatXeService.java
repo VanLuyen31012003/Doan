@@ -19,6 +19,8 @@ import org.slf4j.ILoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -31,6 +33,7 @@ import javax.naming.AuthenticationException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -242,6 +245,43 @@ if (currentSoLuotDat == null) {
                 .hoaDonGiaHan(hoaDonGiaHanRepository.findByDonDatXeId(d.getDonDatXeId()))
                 .build();
     }
+    //huydon qua token
+    public String updateDonDatXenytoken(int id, DonDatXeRequest donDatXe) {
+        var context = SecurityContextHolder.getContext();
+        String name = context.getAuthentication().getName();
+        KhachHang khachHang = khachHangRepository.findByEmail(name).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng với email: " + name));
+        DonDatXe donDatXe1 = donDatXeRepository.findById(id).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy đơn đặt xe với id: " + id));
+        if(donDatXe1.getKhachHangId() != khachHang.getKhachHangId()){
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Bạn không có quyền cập nhật đơn đặt xe này");
+        }
+        // Cập nhật thông tin
+        donDatXe1.setTrangThai(donDatXe.getTrangThai());
+        DonDatXe updatedDonDatXe = donDatXeRepository.save(donDatXe1);
+        // Kiểm tra trạng thái hủy
+        if (updatedDonDatXe.getTrangThai() == TrangThaiDonDatXe.HUY.getValue()) {
+            KhachHang khachHang1 = khachHangRepository.findById(updatedDonDatXe.getKhachHangId()).orElseThrow(() ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy khách hàng với id: " + updatedDonDatXe.getKhachHangId()));
+
+            try {
+                String subject = "Hủy đơn đặt xe #" + updatedDonDatXe.getDonDatXeId();
+                String body = "Kính gửi " + khachHang1.getHoTen() + ",\n\n" +
+                        "Đơn đặt xe của bạn với ID #" + updatedDonDatXe.getDonDatXeId() + " đã bị hủy.\n" +
+                        "Nếu có thắc mắc, vui lòng liên hệ với chúng tôi.\n\n" +
+                        "Trân trọng,\nĐội ngũ hỗ trợ MOTOVIP SĐT: 0948310103";
+
+                mailService.sendBookingConfirmationEmail(khachHang1.getEmail(), subject, body);
+            } catch (MessagingException e) {
+                log.error("Failed to send booking cancellation email: {}", e.getMessage());
+                throw new RuntimeException("Unable to send cancellation email", e);
+            }
+        }
+        return "Huy thanh cong";
+
+    }
+
+
     @PreAuthorize("hasAnyRole('ADMIN','USER')")
     public DonDatXeResponse updateDonDatXe(int id, DonDatXeRequest donDatXe) {
         var context = SecurityContextHolder.getContext();
@@ -379,10 +419,23 @@ if (currentSoLuotDat == null) {
             throw new IllegalArgumentException("Chi tiết đơn không tồn tại");
         }
 
-        // Kiểm tra danh sách các hóa đơn gia hạn
+//         Kiểm tra danh sách các hóa đơn gia hạn
+
         List<HoaDonGiaHan> hoaDonGiaHans = hoaDonGiaHanRepository.findByDonDatXeId(donDatXeId);
-        if (hoaDonGiaHans != null && !hoaDonGiaHans.isEmpty()) {
-            throw new IllegalArgumentException("Không thể gia hạn thêm, vui lòng hoàn trả xe đúng thời hạn");
+        var context = SecurityContextHolder.getContext();
+        Authentication authentication = context.getAuthentication();
+        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
+
+// Kiểm tra xem người dùng có vai trò ADMIN hoặc USER không
+        boolean isAdminOrUser = authorities.stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_USER"));
+
+// Chỉ áp dụng kiểm tra cho khách hàng (không phải ADMIN hoặc USER)
+        if (!isAdminOrUser) {
+            // Sử dụng biến hoaDonGiaHans đã khai báo ở trên, không khai báo lại
+            if (hoaDonGiaHans != null && !hoaDonGiaHans.isEmpty()) {
+                throw new IllegalArgumentException("Không thể gia hạn thêm, vui lòng hoàn trả xe đúng thời hạn");
+            }
         }
 
         List<Integer> xeIds = chiTiet.stream().map(ChiTietDonDatXe::getXeId).collect(Collectors.toList());
@@ -438,10 +491,10 @@ if (currentSoLuotDat == null) {
                     "Kính gửi %s,\n\nĐơn đặt xe #%d của bạn đã được gia hạn thành công.\n" +
                             "Thời gian kết thúc mới: %s\n" +
                             "Chi phí gia hạn: %s VNĐ\n" +
-                            "Tổng tiền đơn hàng: %s VNĐ\n\nTrân trọng,\nĐội ngũ hỗ trợ MOTOVIP, SĐT: 0948310103 "  ,
+                            "Tổng tiền đơn : %s VNĐ\n\nTrân trọng,\nĐội ngũ hỗ trợ MOTOVIP, SĐT: 0948310103 "  ,
                     khachHang.getHoTen(),
                     updatedDonDatXe.getDonDatXeId(),
-                    updatedDonDatXe.getNgayKetThuc().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+                    updatedDonDatXe.getNgayKetThuc().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy ")),
                     tongTienGiaHan.toString(),
                     updatedDonDatXe.getTongTien().toString()
             );

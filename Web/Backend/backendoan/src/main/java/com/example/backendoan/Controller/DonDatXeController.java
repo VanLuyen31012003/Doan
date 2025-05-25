@@ -109,6 +109,13 @@ public class DonDatXeController {
                         .data(donDatXeService.getalldondatbyidxe(id))
                         .build();
     }
+    @PutMapping("/updatedontoken/{id}")
+    public ApiResponse<String> getDonDatXeByIdXe(@PathVariable int id, @RequestBody DonDatXeRequest donDatXeRequest) {
+        return ApiResponse.<String>builder()
+                .message("Huy don dat xe thanh cong")
+                .data(donDatXeService.updateDonDatXenytoken(id, donDatXeRequest))
+                .build();
+    }
 
 
 

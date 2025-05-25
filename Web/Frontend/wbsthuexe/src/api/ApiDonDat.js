@@ -25,6 +25,12 @@ const ApiDonDat = {
         const url = `/dondatxe/giahan/${id}`;
         return axiosclient.post(url, dondat);
     },
-
+    huydondat: (id) => {
+        const url = `/dondatxe/updatedontoken/${id}`;
+        const data = {
+            trangThai: 3 // 3 là trạng thái đã hủy'
+        };
+        return axiosclient.put(url, data);
+    },
 };
 export default ApiDonDat;

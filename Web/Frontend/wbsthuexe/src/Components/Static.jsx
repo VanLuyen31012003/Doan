@@ -8,14 +8,14 @@ import { MdOutlineSupportAgent } from "react-icons/md";
 import { FaShieldAlt } from "react-icons/fa";
 
 const partner = [
-  {
-    id: 1,
-    img: "https://cdn.brvn.vn/editor/2019/06/1540460966309Momo_1560238288.png"
-  },
-  {
-    id: 2,
-    img: "https://canhme.com/wp-content/uploads/2016/01/Paypal.png"
-  },
+  // {
+  //   id: 1,
+  //   img: "https://cdn.brvn.vn/editor/2019/06/1540460966309Momo_1560238288.png"
+  // },
+  // {
+  //   id: 2,
+  //   img: "https://canhme.com/wp-content/uploads/2016/01/Paypal.png"
+  // },
   {
     id: 3,
     img: "https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png"
@@ -32,7 +32,7 @@ const star = [
   },
   {
     id: 2,
-    comment: "HIMOTO thực sự là một công ty tuyệt vời trong lĩnh vực thuê xe máy. Từ trải nghiệm của bản thân, tôi có thể chắc chắn bạn sẽ cảm thấy hài lòng với dịch vụ của họ.",
+    comment: "MOTOVIP thực sự là một công ty tuyệt vời trong lĩnh vực thuê xe máy. Từ trải nghiệm của bản thân, tôi có thể chắc chắn bạn sẽ cảm thấy hài lòng với dịch vụ của họ.",
     img: "https://himoto.vn/wp-content/uploads/2023/09/terminal2.jpeg",
     name: "Diệu Bình",
     job: "Khách du lịch"
@@ -126,7 +126,7 @@ function Static() {
       <div className="w-full bg-[#f9f9f9] flex justify-center items-center py-12 md:pt-36">
         <div className="text-[#DD5C36] w-[90%] md:w-[80%] lg:w-[75%] flex flex-col justify-start">
           <div className="w-full flex flex-col gap-4 items-center justify-between">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center">HIMOTO - Giải pháp thuê xe đáng tin cậy</h1>
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-center">MOTOVIP - Giải pháp thuê xe đáng tin cậy</h1>
             <p className="text-xl md:text-2xl text-[#2c2a29] text-center">Trải nghiệm dịch vụ thuê xe máy hoàn toàn mới</p>
             <div className="w-full flex flex-wrap justify-around mt-8 md:mt-[10vh] gap-6">
               <div className="w-[45%] md:w-[22%] flex flex-col items-center justify-center gap-4 mb-6">

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { message, Modal } from "antd";
+import {  Modal } from "antd";
 import ApiKhachHang from "../api/ApiKhachHang";
 import ApiDonDat from "../api/ApiDonDat";
 import { toast } from "react-toastify";
@@ -263,7 +263,7 @@ const RentalModal = ({ visible, onOk, onCancel, data, pricePerDay1 }) => {
                     src="https://cdn-icons-png.flaticon.com/512/2331/2331943.png"
                     alt="Tiền mặt"
                     className="w-8 h-8"
-                  />
+                  />\
                   <span className="text-[#777777] font-semibold">Tiền mặt</span>
                 </div>
                 <input
@@ -292,7 +292,8 @@ const RentalModal = ({ visible, onOk, onCancel, data, pricePerDay1 }) => {
                     className="w-10  h-10 object-contain"
                   />
                   <span className="text-[#777777] font-semibold">
-                    VNPay Cash
+                    VNPay Credit
+
                   </span>
                 </div>
                 <input
