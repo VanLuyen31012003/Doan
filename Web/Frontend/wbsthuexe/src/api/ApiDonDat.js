@@ -32,5 +32,9 @@ const ApiDonDat = {
         };
         return axiosclient.put(url, data);
     },
+    getcountdondat: () => {
+        const url = '/dondatxe/gettongdondat';
+        return axiosclient.get(url);
+    },
 };
 export default ApiDonDat;

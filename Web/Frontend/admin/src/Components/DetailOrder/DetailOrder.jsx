@@ -14,14 +14,16 @@ import {
   InfoCircleOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  EnvironmentOutlined
+  EnvironmentOutlined,
+  PrinterOutlined
 } from '@ant-design/icons';
 import moment from 'moment';
 import ApiDonDat from '../../Api/ApiDonDat';
 import { toast } from 'react-toastify';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const { Title, Text } = Typography;
-const { confirm } = Modal;
 
 // Định nghĩa trạng thái đơn hàng
 const ORDER_STATUS = {
@@ -48,6 +50,7 @@ const paymentStatusMap = {
 };
 
 const DetailOrder = () => {
+  const [contractPreviewVisible, setContractPreviewVisible] = useState(false);
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -125,7 +128,7 @@ const DetailOrder = () => {
         newEndDate: formattedDate,
       };
       
-      const response = await ApiDonDat.giaHanDonDat(id, datasend);
+      await ApiDonDat.giaHanDonDat(id, datasend);
       toast.success("Gia hạn đơn đặt xe thành công!");
       setExtendModalVisible(false);
       setNewEndDate(null);
@@ -140,18 +143,76 @@ const DetailOrder = () => {
   
   // Cập nhật trạng thái đơn hàng
   const handleStatusChange = async (newStatus) => {
-    const isConfirmed = window.confirm(`Bạn có chắc chắn muốn chuyển đơn hàng #${id} sang trạng thái ${statusMap[newStatus]}?`);
+    Modal.confirm({
+      title: `Xác nhận thay đổi trạng thái`,
+      content: `Bạn có chắc chắn muốn chuyển đơn hàng #${id} sang trạng thái ${statusMap[newStatus]}?`,
+      okText: 'Xác nhận',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          await ApiDonDat.updateDonDat(id, { trangThai: newStatus });
+          toast.success(`Đã cập nhật trạng thái đơn hàng #${id} thành công`);
+          fetchOrder();
+        } catch (error) {
+          console.error("Error updating order status:", error);
+          toast.error("Có lỗi khi cập nhật trạng thái đơn hàng");
+        }
+      },
+    });
+  };
+  
+  // Tạo PDF hợp đồng
+  const generateContractPDF = async () => {
+    const contractElement = document.getElementById('contract-content');
     
-    if (isConfirmed) {
-      try {
-        await ApiDonDat.updateDonDat(id, { trangThai: newStatus });
-        toast.success(`Đã cập nhật trạng thái đơn hàng #${id} thành công`);
-        fetchOrder();
-      } catch (error) {
-        console.error("Error updating order status:", error);
-        toast.error("Có lỗi khi cập nhật trạng thái đơn hàng");
-      }
+    if (!contractElement) {
+      toast.error('Không thể tạo hợp đồng');
+      return;
     }
+
+    try {
+      // Tạo canvas từ HTML element
+      const canvas = await html2canvas(contractElement, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Thêm trang đầu tiên
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Thêm các trang tiếp theo nếu cần
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      // Lưu file PDF
+      pdf.save(`hop-dong-thue-xe-${order.donDatXeId}.pdf`);
+      toast.success('Đã tạo hợp đồng PDF thành công!');
+      setContractPreviewVisible(false);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error('Có lỗi khi tạo file PDF');
+    }
+  };
+
+  // Hiển thị preview hợp đồng
+  const showContractPreview = () => {
+    setContractPreviewVisible(true);
   };
   
   // Định dạng ngày tháng
@@ -185,6 +246,151 @@ const DetailOrder = () => {
         return <Tag color="default">Không xác định</Tag>;
     }
   };
+  
+  // Component nội dung hợp đồng
+  const ContractContent = () => (
+    <div id="contract-content" style={{ 
+      padding: '40px', 
+      fontFamily: 'Arial, sans-serif',
+      backgroundColor: 'white',
+      color: 'black',
+      lineHeight: '1.6'
+    }}>
+      {/* Header hợp đồng */}
+      <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '0', textTransform: 'uppercase' }}>
+          HỢP ĐỒNG THUÊ XE MÁY
+        </h1>
+        <p style={{ fontSize: '16px', margin: '10px 0' }}>
+          <strong>Số hợp đồng: {order.donDatXeId}</strong>
+        </p>
+        <p style={{ fontSize: '14px', margin: '5px 0' }}>
+          Ngày lập: {moment().format('DD/MM/YYYY')}
+        </p>
+      </div>
+
+      {/* Thông tin bên cho thuê */}
+      <div style={{ marginBottom: '25px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', textTransform: 'uppercase' }}>
+          BÊN CHO THUÊ (Bên A):
+        </h3>
+        <div style={{ paddingLeft: '20px' }}>
+          <p style={{ margin: '8px 0' }}><strong>Công ty:</strong> MotoVip - Dịch vụ cho thuê xe máy</p>
+          <p style={{ margin: '8px 0' }}><strong>Địa chỉ:</strong> 123 Đường ABC, Quận XYZ, TP.HÀ NỘI</p>
+          <p style={{ margin: '8px 0' }}><strong>Điện thoại:</strong> 0123-456-789</p>
+          <p style={{ margin: '8px 0' }}><strong>Email:</strong> contact@motovip.com</p>
+          <p style={{ margin: '8px 0' }}><strong>Mã số thuế:</strong> 0123456789</p>
+        </div>
+      </div>
+
+      {/* Thông tin bên thuê */}
+      <div style={{ marginBottom: '25px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', textTransform: 'uppercase' }}>
+          BÊN THUÊ (Bên B):
+        </h3>
+        <div style={{ paddingLeft: '20px' }}>
+          <p style={{ margin: '8px 0' }}><strong>Họ tên:</strong> {order.khachHangName}</p>
+          <p style={{ margin: '8px 0' }}><strong>Số điện thoại:</strong> </p>
+          <p style={{ margin: '8px 0' }}><strong>Email:</strong></p>
+          <p style={{ margin: '8px 0' }}><strong>Địa chỉ nhận xe:</strong> {order.diaDiemNhanXe}</p>
+        </div>
+      </div>
+
+      {/* Thông tin xe thuê */}
+      <div style={{ marginBottom: '25px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', textTransform: 'uppercase' }}>
+          THÔNG TIN XE THUÊ:
+        </h3>
+        <div style={{ paddingLeft: '20px' }}>
+          {order.chiTiet?.map((detail, index) => (
+            <div key={index} style={{ marginBottom: '15px', border: '1px solid #ddd', padding: '10px', borderRadius: '5px' }}>
+              <p style={{ margin: '5px 0', fontWeight: 'bold' }}>Xe {index + 1}:</p>
+              <p style={{ margin: '5px 0' }}>• Tên xe: {detail.xe?.mauXe?.tenMau || 'N/A'}</p>
+              <p style={{ margin: '5px 0' }}>• Biển số: <strong>{detail.xe?.bienSo || 'N/A'}</strong></p>
+              <p style={{ margin: '5px 0' }}>• Hãng xe: {detail.xe?.mauXe?.hangXe?.tenHangXe || 'N/A'}</p>
+              <p style={{ margin: '5px 0' }}>• Giá thuê/ngày: <strong>{formatCurrency(detail.xe?.mauXe?.giaThueNgay || 0)}</strong></p>
+              <p style={{ margin: '5px 0' }}>• Thành tiền: <strong>{formatCurrency(detail.thanhTien || 0)}</strong></p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Thời gian thuê */}
+      <div style={{ marginBottom: '25px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', textTransform: 'uppercase' }}>
+          THỜI GIAN THUÊ:
+        </h3>
+        <div style={{ paddingLeft: '20px' }}>
+          <p style={{ margin: '8px 0' }}><strong>Ngày bắt đầu:</strong> {formatDate(order.ngayBatDau)}</p>
+          <p style={{ margin: '8px 0' }}><strong>Ngày kết thúc:</strong> {formatDate(order.ngayKetThuc)}</p>
+          <p style={{ margin: '8px 0' }}><strong>Số ngày thuê:</strong> {Math.ceil((new Date(order.ngayKetThuc) - new Date(order.ngayBatDau)) / (1000 * 60 * 60 * 24))} ngày</p>
+          <p style={{ margin: '8px 0' }}><strong>Địa điểm nhận xe:</strong> {order.diaDiemNhanXe}</p>
+        </div>
+      </div>
+
+      {/* Thông tin thanh toán */}
+      <div style={{ marginBottom: '25px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', textTransform: 'uppercase' }}>
+          THÔNG TIN THANH TOÁN:
+        </h3>
+        <div style={{ paddingLeft: '20px' }}>
+          <p style={{ margin: '8px 0' }}><strong>Tổng tiền thuê:</strong> <span style={{ color: '#d73527', fontWeight: 'bold' }}>{formatCurrency(order.tongTien)}</span></p>
+          {/* <p style={{ margin: '8px 0' }}><strong>Tiền đặt cọc:</strong> {formatCurrency(order.tongTienLandau)}</p>
+          <p style={{ margin: '8px 0' }}><strong>Số tiền còn lại:</strong> <span style={{ color: '#d73527', fontWeight: 'bold' }}>{formatCurrency(order.soTienCanThanhToan)}</span></p>
+          <p style={{ margin: '8px 0' }}><strong>Phương thức thanh toán:</strong> {order.phuongThucThanhToan}</p> */}
+          <p style={{ margin: '8px 0' }}><strong>Trạng thái thanh toán:</strong> {paymentStatusMap[order.trangThaiThanhToan]}</p>
+        </div>
+      </div>
+
+      {/* Điều khoản hợp đồng */}
+      <div style={{ marginBottom: '25px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '15px', textTransform: 'uppercase' }}>
+          ĐIỀU KHOẢN HỢP ĐỒNG:
+        </h3>
+        <div style={{ paddingLeft: '20px' }}>
+          <p style={{ margin: '8px 0' }}><strong>1.</strong> Bên B có trách nhiệm bảo quản xe trong thời gian thuê, không được tự ý sửa chữa hoặc thay đổi cấu trúc xe.</p>
+          <p style={{ margin: '8px 0' }}><strong>2.</strong> Bên B phải trả xe đúng thời hạn và trong tình trạng như ban đầu (trừ hao mòn tự nhiên).</p>
+          <p style={{ margin: '8px 0' }}><strong>3.</strong> Bên B chịu trách nhiệm về các vi phạm giao thông và tai nạn xảy ra trong thời gian thuê xe.</p>
+          <p style={{ margin: '8px 0' }}><strong>4.</strong> Trường hợp xe bị hư hỏng, mất mát do lỗi của Bên B, Bên B phải bồi thường theo giá thị trường.</p>
+          <p style={{ margin: '8px 0' }}><strong>5.</strong> Bên B không được cho thuê lại xe cho bên thứ ba mà không có sự đồng ý của Bên A.</p>
+          <p style={{ margin: '8px 0' }}><strong>6.</strong> Hợp đồng có hiệu lực kể từ ngày ký và chấm dứt khi Bên B trả xe cho Bên A.</p>
+          <p style={{ margin: '8px 0' }}><strong>7.</strong> Mọi tranh chấp phát sinh sẽ được giải quyết thông qua thương lượng hoặc theo pháp luật Việt Nam.</p>
+        </div>
+      </div>
+
+      {/* Cam kết */}
+      <div style={{ marginBottom: '30px', textAlign: 'center', fontStyle: 'italic' }}>
+        <p>Hai bên đã đọc kỹ hợp đồng, hiểu rõ quyền và nghĩa vụ của mình, đồng ý ký tên dưới đây.</p>
+      </div>
+
+      {/* Chữ ký */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '50px' }}>
+        <div style={{ textAlign: 'center', width: '40%' }}>
+          <p style={{ fontWeight: 'bold', fontSize: '16px' }}>BÊN CHO THUÊ</p>
+          <p style={{ fontSize: '14px', fontStyle: 'italic', margin: '5px 0' }}>(Ký và ghi rõ họ tên)</p>
+          <div style={{ height: '80px' }}></div>
+          <p style={{ fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '5px' }}>
+            MotoVip
+          </p>
+        </div>
+        <div style={{ textAlign: 'center', width: '40%' }}>
+          <p style={{ fontWeight: 'bold', fontSize: '16px' }}>BÊN THUÊ</p>
+          <p style={{ fontSize: '14px', fontStyle: 'italic', margin: '5px 0' }}>(Ký và ghi rõ họ tên)</p>
+          <div style={{ height: '80px' }}></div>
+          <p style={{ fontWeight: 'bold', borderTop: '1px solid #000', paddingTop: '5px' }}>
+            {order.khachHangName}
+          </p>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div style={{ marginTop: '30px', textAlign: 'center', fontSize: '12px', color: '#666' }}>
+        <p>--- HẾT ---</p>
+        <p>Hợp đồng được lập tại: TP. Hà Nôi</p>
+        <p>Ngày: {moment().format('DD')} tháng {moment().format('MM')} năm {moment().format('YYYY')}</p>
+      </div>
+    </div>
+  );
   
   // Cấu hình cột bảng chi tiết xe
   const vehicleColumns = [
@@ -282,7 +488,7 @@ const DetailOrder = () => {
         type="error"
         showIcon
         action={
-          <Button onClick={() => navigate('/dashboard/orders')} type="primary">
+          <Button onClick={() => navigate(-1)} type="primary">
             Quay lại danh sách
           </Button>
         }
@@ -296,7 +502,7 @@ const DetailOrder = () => {
         <div className="flex items-center">
           <Button 
             icon={<ArrowLeftOutlined />} 
-            onClick={() => navigate('/dashboard/orders')}
+            onClick={() => navigate(-1)}
             className="mr-4"
           >
             Quay lại
@@ -306,6 +512,16 @@ const DetailOrder = () => {
           </Title>
         </div>
         <Space>
+          {/* Nút In hợp đồng */}
+          <Button
+            type="default"
+            icon={<PrinterOutlined />}
+            onClick={showContractPreview}
+            disabled={order.trangThai === ORDER_STATUS.HUY}
+          >
+            In hợp đồng
+          </Button>
+          
           {order.trangThai === ORDER_STATUS.CHO_XAC_NHAN && (
             <>
               <Button
@@ -325,24 +541,23 @@ const DetailOrder = () => {
             </>
           )}
           {order.trangThai === ORDER_STATUS.DA_XAC_NHAN && (
-  <>
-    <Button
-      type="primary"
-      icon={<CarOutlined />}
-      onClick={() => handleStatusChange(ORDER_STATUS.DANG_THUE)}
-    >
-      Giao xe
-    </Button>
-    {/* Thêm nút hủy đơn */}
-    <Button
-      danger
-      icon={<CloseCircleOutlined />}
-      onClick={() => handleStatusChange(ORDER_STATUS.HUY)}
-    >
-      Hủy đơn
-    </Button>
-  </>
-)}
+            <>
+              <Button
+                type="primary"
+                icon={<CarOutlined />}
+                onClick={() => handleStatusChange(ORDER_STATUS.DANG_THUE)}
+              >
+                Giao xe
+              </Button>
+              <Button
+                danger
+                icon={<CloseCircleOutlined />}
+                onClick={() => handleStatusChange(ORDER_STATUS.HUY)}
+              >
+                Hủy đơn
+              </Button>
+            </>
+          )}
           {order.trangThai === ORDER_STATUS.DANG_THUE && (
             <>
               <Button
@@ -414,15 +629,15 @@ const DetailOrder = () => {
           <Text strong>{order.donDatXeId}</Text>
         </Descriptions.Item>
         <Descriptions.Item label="Khách hàng" span={2}>
-  <div 
-    className="flex items-center cursor-pointer text-blue-600 hover:text-blue-800"
-    onClick={() => navigate(`/dashboard/khachang/${order.idKhachHang}`)}
-  >
-    <UserOutlined className="mr-2" />
-    <Text strong className="hover:underline">{order.khachHangName}</Text>
-    <span className="ml-1 text-xs text-gray-500">(Click để xem chi tiết)</span>
-  </div>
-</Descriptions.Item>
+          <div 
+            className="flex items-center cursor-pointer text-blue-600 hover:text-blue-800"
+            onClick={() => navigate(`/dashboard/khachang/${order.idKhachHang}`)}
+          >
+            <UserOutlined className="mr-2" />
+            <Text strong className="hover:underline">{order.khachHangName}</Text>
+            <span className="ml-1 text-xs text-gray-500">(Click để xem chi tiết)</span>
+          </div>
+        </Descriptions.Item>
         <Descriptions.Item label="Người xử lý" span={2}>
           {order.nguoiDungName || "Chưa có"}
         </Descriptions.Item>
@@ -488,10 +703,31 @@ const DetailOrder = () => {
         </>
       )}
       
+      {/* Modal preview hợp đồng */}
+      <Modal
+        title="Xem trước hợp đồng thuê xe"
+        open={contractPreviewVisible}
+        onCancel={() => setContractPreviewVisible(false)}
+        width={900}
+        style={{ top: 20 }}
+        footer={[
+          <Button key="back" onClick={() => setContractPreviewVisible(false)}>
+            Đóng
+          </Button>,
+          <Button key="download" type="primary" icon={<PrinterOutlined />} onClick={generateContractPDF}>
+            Tải xuống PDF
+          </Button>
+        ]}
+      >
+        <div style={{ maxHeight: '70vh', overflow: 'auto' }}>
+          <ContractContent />
+        </div>
+      </Modal>
+      
       {/* Modal gia hạn đơn đặt */}
       <Modal
         title="Gia hạn đơn đặt xe"
-        visible={extendModalVisible}
+        open={extendModalVisible}
         onCancel={() => {
           setExtendModalVisible(false);
           setNewEndDate(null);

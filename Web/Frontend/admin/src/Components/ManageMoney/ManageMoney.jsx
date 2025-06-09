@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Button, Typography, Spin, Select } from 'antd';
+import { Card, Row, Col, Statistic, Table, Button, Typography, Spin, Select, DatePicker } from 'antd';
 import { DollarOutlined, FileTextOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import moment from 'moment';
@@ -9,7 +9,6 @@ import ApiDonDat from '../../Api/ApiDonDat';
 const { Title, Text } = Typography;
 const { Option } = Select;
 
-// Định nghĩa trạng thái đơn hàng
 const ORDER_STATUS = {
   CHO_XAC_NHAN: 0,
   DA_XAC_NHAN: 1, 
@@ -18,11 +17,16 @@ const ORDER_STATUS = {
   DANG_THUE: 4
 };
 
+const quarterList = [1, 2, 3, 4];
+
 const ManageMoney = () => {
   const [loading, setLoading] = useState(false);
   const [orders, setOrders] = useState([]);
+  const [statType, setStatType] = useState('month'); // 'day' | 'month' | 'quarter' | 'year'
   const [selectedYear, setSelectedYear] = useState(moment().year());
-  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1); // Tháng hiện tại
+  const [selectedMonth, setSelectedMonth] = useState(moment().month() + 1);
+  const [selectedQuarter, setSelectedQuarter] = useState(1);
+  const [selectedDay, setSelectedDay] = useState(moment().toDate());
   const [summaryData, setSummaryData] = useState({
     totalRevenue: 0,
     completedOrders: 0,
@@ -30,13 +34,12 @@ const ManageMoney = () => {
     avgOrderValue: 0
   });
 
-  // Tạo danh sách năm (từ 2020 đến năm hiện tại)
+  // Danh sách năm
   const years = [];
   for (let year = 2020; year <= moment().year(); year++) {
     years.push(year);
   }
-
-  // Tạo danh sách tháng
+  // Danh sách tháng
   const months = [];
   for (let month = 1; month <= 12; month++) {
     months.push(month);
@@ -44,14 +47,11 @@ const ManageMoney = () => {
 
   // Lấy dữ liệu đơn hàng từ API
   const fetchData = async () => {
-    
     setLoading(true);
     try {
       const response = await ApiDonDat.getAllDonDat();
       if (response.data.success) {
-        const orderData = response.data.data;
-        setOrders(orderData);
-        calculateSummaryData(orderData);
+        setOrders(response.data.data);
       }
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -60,37 +60,49 @@ const ManageMoney = () => {
     }
   };
 
-  // Gọi API khi component mount
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Tính toán số liệu khi orders, selectedYear hoặc selectedMonth thay đổi
+  // Tính toán số liệu tổng hợp khi orders hoặc filter thay đổi
   useEffect(() => {
     if (orders.length) {
       calculateSummaryData(orders);
     }
-  }, [orders, selectedYear, selectedMonth]);
+    // eslint-disable-next-line
+  }, [orders, statType, selectedYear, selectedMonth, selectedQuarter, selectedDay]);
 
   // Tính toán dữ liệu tổng hợp
   const calculateSummaryData = (orderData) => {
-    // Lọc đơn hàng theo năm và tháng đã chọn
-    const filteredOrders = orderData.filter(order => {
-      const orderDate = moment(order.ngayBatDau);
-      return orderDate.year() === selectedYear && orderDate.month() + 1 === selectedMonth;
-    });
-    
-    // Tính doanh thu từ các đơn hoàn thành (trạng thái 2 - HOAN_THANH)
+    let filteredOrders = [];
+    if (statType === 'day') {
+      filteredOrders = orderData.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return orderDate.isSame(moment(selectedDay), 'day');
+      });
+    } else if (statType === 'month') {
+      filteredOrders = orderData.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return orderDate.year() === selectedYear && orderDate.month() + 1 === selectedMonth;
+      });
+    } else if (statType === 'quarter') {
+      filteredOrders = orderData.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return orderDate.year() === selectedYear && Math.ceil((orderDate.month() + 1) / 3) === selectedQuarter;
+      });
+    } else if (statType === 'year') {
+      filteredOrders = orderData.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return orderDate.year() === selectedYear;
+      });
+    }
+
     const completedOrders = filteredOrders.filter(order => order.trangThai === ORDER_STATUS.HOAN_THANH);
     const totalRevenue = completedOrders.reduce((sum, order) => sum + (order.tongTien || 0), 0);
-    
-    // Tính số lượng đơn hàng theo trạng thái
     const completed = completedOrders.length;
     const canceled = filteredOrders.filter(order => order.trangThai === ORDER_STATUS.HUY).length;
-    
-    // Tính giá trị trung bình đơn hàng
     const avgOrderValue = completed ? totalRevenue / completed : 0;
-    
+
     setSummaryData({
       totalRevenue,
       completedOrders: completed,
@@ -99,69 +111,132 @@ const ManageMoney = () => {
     });
   };
 
-  // Xử lý khi thay đổi năm
-  const handleYearChange = (year) => {
-    setSelectedYear(year);
-  };
+  // Xử lý thay đổi bộ lọc
+  const handleYearChange = (year) => setSelectedYear(year);
+  const handleMonthChange = (month) => setSelectedMonth(month);
+  const handleQuarterChange = (quarter) => setSelectedQuarter(quarter);
+  const handleDayChange = (date) => setSelectedDay(date ? date.toDate() : null);
 
-  // Xử lý khi thay đổi tháng
-  const handleMonthChange = (month) => {
-    setSelectedMonth(month);
-  };
-
-  // Tính toán dữ liệu cho biểu đồ doanh thu theo ngày trong tháng
-  const getDailyRevenueData = () => {
+  // Dữ liệu cho biểu đồ
+  const getChartData = () => {
     if (!orders.length) return [];
-    
-    // Lọc các đơn hoàn thành trong tháng đã chọn
-    const filteredOrders = orders.filter(order => {
-      const orderDate = moment(order.ngayBatDau);
-      return order.trangThai === ORDER_STATUS.HOAN_THANH && 
-             orderDate.year() === selectedYear && 
-             orderDate.month() + 1 === selectedMonth;
-    });
-    
-    // Tạo đối tượng lưu doanh thu theo ngày
-    const dailyData = {};
-    
-    // Số ngày trong tháng đã chọn
-    const daysInMonth = moment(`${selectedYear}-${selectedMonth}`, 'YYYY-MM').daysInMonth();
-    
-    // Khởi tạo dữ liệu cho tất cả các ngày trong tháng
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateStr = moment(`${selectedYear}-${selectedMonth}-${day}`, 'YYYY-MM-DD').format('DD/MM');
-      dailyData[day] = {
-        date: dateStr,
-        revenue: 0
-      };
-    }
-    
-    // Tính tổng doanh thu theo ngày
-    filteredOrders.forEach(order => {
-      const day = moment(order.ngayBatDau).date();
-      if (dailyData[day]) {
-        dailyData[day].revenue += order.tongTien || 0;
+
+    if (statType === 'day') {
+      // Theo giờ trong ngày
+      const filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return order.trangThai === ORDER_STATUS.HOAN_THANH && orderDate.isSame(moment(selectedDay), 'day');
+      });
+      const hourlyData = {};
+      for (let h = 0; h < 24; h++) {
+        hourlyData[h] = { label: `${h}:00`, revenue: 0 };
       }
-    });
-    
-    // Chuyển đổi thành mảng
-    return Object.values(dailyData);
+      filteredOrders.forEach(order => {
+        const hour = moment(order.ngayBatDau).hour();
+        hourlyData[hour].revenue += order.tongTien || 0;
+      });
+      return Object.values(hourlyData);
+    }
+
+    if (statType === 'month') {
+      // Theo ngày trong tháng
+      const filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return order.trangThai === ORDER_STATUS.HOAN_THANH &&
+          orderDate.year() === selectedYear &&
+          orderDate.month() + 1 === selectedMonth;
+      });
+      const daysInMonth = moment(`${selectedYear}-${selectedMonth}`, 'YYYY-MM').daysInMonth();
+      const dailyData = {};
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = moment(`${selectedYear}-${selectedMonth}-${day}`, 'YYYY-MM-DD').format('DD/MM');
+        dailyData[day] = { label: dateStr, revenue: 0 };
+      }
+      filteredOrders.forEach(order => {
+        const day = moment(order.ngayBatDau).date();
+        if (dailyData[day]) {
+          dailyData[day].revenue += order.tongTien || 0;
+        }
+      });
+      return Object.values(dailyData);
+    }
+
+    if (statType === 'quarter') {
+      // Theo tháng trong quý
+      const filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return order.trangThai === ORDER_STATUS.HOAN_THANH &&
+          orderDate.year() === selectedYear &&
+          Math.ceil((orderDate.month() + 1) / 3) === selectedQuarter;
+      });
+      const monthsInQuarter = [(selectedQuarter - 1) * 3 + 1, (selectedQuarter - 1) * 3 + 2, (selectedQuarter - 1) * 3 + 3];
+      const monthlyData = {};
+      monthsInQuarter.forEach(month => {
+        monthlyData[month] = { label: `Tháng ${month}`, revenue: 0 };
+      });
+      filteredOrders.forEach(order => {
+        const month = moment(order.ngayBatDau).month() + 1;
+        if (monthlyData[month]) {
+          monthlyData[month].revenue += order.tongTien || 0;
+        }
+      });
+      return Object.values(monthlyData);
+    }
+
+    if (statType === 'year') {
+      // Theo tháng trong năm
+      const filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return order.trangThai === ORDER_STATUS.HOAN_THANH &&
+          orderDate.year() === selectedYear;
+      });
+      const monthlyData = {};
+      for (let month = 1; month <= 12; month++) {
+        monthlyData[month] = { label: `Tháng ${month}`, revenue: 0 };
+      }
+      filteredOrders.forEach(order => {
+        const month = moment(order.ngayBatDau).month() + 1;
+        monthlyData[month].revenue += order.tongTien || 0;
+      });
+      return Object.values(monthlyData);
+    }
+
+    return [];
   };
 
-  // Lấy danh sách top đơn hàng có giá trị cao nhất trong tháng đã chọn
+  // Top đơn hàng giá trị cao
   const getTopOrdersData = () => {
     if (!orders.length) return [];
-    
-    // Lọc các đơn hoàn thành trong tháng đã chọn
-    return orders
-      .filter(order => {
+    let filteredOrders = [];
+    if (statType === 'day') {
+      filteredOrders = orders.filter(order => {
         const orderDate = moment(order.ngayBatDau);
-        return order.trangThai === ORDER_STATUS.HOAN_THANH && 
-               orderDate.year() === selectedYear && 
-               orderDate.month() + 1 === selectedMonth;
-      })
+        return order.trangThai === ORDER_STATUS.HOAN_THANH && orderDate.isSame(moment(selectedDay), 'day');
+      });
+    } else if (statType === 'month') {
+      filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return order.trangThai === ORDER_STATUS.HOAN_THANH &&
+          orderDate.year() === selectedYear &&
+          orderDate.month() + 1 === selectedMonth;
+      });
+    } else if (statType === 'quarter') {
+      filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return order.trangThai === ORDER_STATUS.HOAN_THANH &&
+          orderDate.year() === selectedYear &&
+          Math.ceil((orderDate.month() + 1) / 3) === selectedQuarter;
+      });
+    } else if (statType === 'year') {
+      filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return order.trangThai === ORDER_STATUS.HOAN_THANH &&
+          orderDate.year() === selectedYear;
+      });
+    }
+    return filteredOrders
       .sort((a, b) => (b.tongTien || 0) - (a.tongTien || 0))
-      .slice(0, 5); // Lấy 5 đơn đầu tiên
+      .slice(0, 5);
   };
 
   // Các cột cho bảng top đơn hàng
@@ -212,6 +287,39 @@ const ManageMoney = () => {
     return [`${value.toLocaleString('vi-VN')} VNĐ`, 'Doanh thu'];
   };
 
+  // Tiêu đề động cho biểu đồ và bảng
+  const getTitle = () => {
+    if (statType === 'day') {
+      return `Doanh thu theo giờ - ${moment(selectedDay).format('DD/MM/YYYY')}`;
+    }
+    if (statType === 'month') {
+      return `Doanh thu theo ngày - Tháng ${selectedMonth}/${selectedYear}`;
+    }
+    if (statType === 'quarter') {
+      return `Doanh thu theo tháng - Quý ${selectedQuarter}/${selectedYear}`;
+    }
+    if (statType === 'year') {
+      return `Doanh thu theo tháng - Năm ${selectedYear}`;
+    }
+    return '';
+  };
+
+  const getTopTitle = () => {
+    if (statType === 'day') {
+      return `Top 5 đơn hàng giá trị cao - ${moment(selectedDay).format('DD/MM/YYYY')}`;
+    }
+    if (statType === 'month') {
+      return `Top 5 đơn hàng giá trị cao - Tháng ${selectedMonth}/${selectedYear}`;
+    }
+    if (statType === 'quarter') {
+      return `Top 5 đơn hàng giá trị cao - Quý ${selectedQuarter}/${selectedYear}`;
+    }
+    if (statType === 'year') {
+      return `Top 5 đơn hàng giá trị cao - Năm ${selectedYear}`;
+    }
+    return '';
+  };
+
   return (
     <div className="revenue-dashboard">
       <Title level={2}>
@@ -221,18 +329,71 @@ const ManageMoney = () => {
       
       {/* Bộ lọc */}
       <Card className="mb-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Text strong>Chọn thời gian:</Text>
-            <Select
-              value={selectedMonth}
-              onChange={handleMonthChange}
-              style={{ width: 120 }}
-            >
-              {months.map(month => (
-                <Option key={month} value={month}>Tháng {month}</Option>
-              ))}
-            </Select>
+        <div className="flex items-center gap-4 flex-wrap">
+          <Text strong>Chọn loại thống kê:</Text>
+          <Select
+            value={statType}
+            onChange={setStatType}
+            style={{ width: 120 }}
+          >
+            <Option value="day">Ngày</Option>
+            <Option value="month">Tháng</Option>
+            <Option value="quarter">Quý</Option>
+            <Option value="year">Năm</Option>
+          </Select>
+          {statType === 'day' && (
+            <DatePicker
+              value={selectedDay ? moment(selectedDay) : null}
+              onChange={handleDayChange}
+              format="DD/MM/YYYY"
+              style={{ width: 140 }}
+            />
+          )}
+          {statType === 'month' && (
+            <>
+              <Select
+                value={selectedMonth}
+                onChange={handleMonthChange}
+                style={{ width: 120 }}
+              >
+                {months.map(month => (
+                  <Option key={month} value={month}>Tháng {month}</Option>
+                ))}
+              </Select>
+              <Select
+                value={selectedYear}
+                onChange={handleYearChange}
+                style={{ width: 100 }}
+              >
+                {years.map(year => (
+                  <Option key={year} value={year}>{year}</Option>
+                ))}
+              </Select>
+            </>
+          )}
+          {statType === 'quarter' && (
+            <>
+              <Select
+                value={selectedQuarter}
+                onChange={handleQuarterChange}
+                style={{ width: 120 }}
+              >
+                {quarterList.map(q => (
+                  <Option key={q} value={q}>Quý {q}</Option>
+                ))}
+              </Select>
+              <Select
+                value={selectedYear}
+                onChange={handleYearChange}
+                style={{ width: 100 }}
+              >
+                {years.map(year => (
+                  <Option key={year} value={year}>{year}</Option>
+                ))}
+              </Select>
+            </>
+          )}
+          {statType === 'year' && (
             <Select
               value={selectedYear}
               onChange={handleYearChange}
@@ -242,7 +403,7 @@ const ManageMoney = () => {
                 <Option key={year} value={year}>{year}</Option>
               ))}
             </Select>
-          </div>
+          )}
           <Button type="primary" onClick={fetchData} loading={loading}>Cập nhật dữ liệu</Button>
         </div>
       </Card>
@@ -252,7 +413,7 @@ const ManageMoney = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="Tổng doanh thu tháng"
+              title="Tổng doanh thu"
               value={summaryData.totalRevenue}
               formatter={(value) => `${(value).toLocaleString('vi-VN')} VNĐ`}
               prefix={<DollarOutlined />}
@@ -293,9 +454,9 @@ const ManageMoney = () => {
         </Col>
       </Row>
       
-      {/* Biểu đồ doanh thu theo ngày trong tháng */}
+      {/* Biểu đồ doanh thu */}
       <Card 
-        title={`Doanh thu theo ngày - Tháng ${selectedMonth}/${selectedYear}`} 
+        title={getTitle()}
         className="mb-4"
         extra={<Text type="secondary">{`Tổng doanh thu: ${summaryData.totalRevenue.toLocaleString('vi-VN')} VNĐ`}</Text>}
       >
@@ -305,9 +466,9 @@ const ManageMoney = () => {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={getDailyRevenueData()} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart data={getChartData()} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
+              <XAxis dataKey="label" />
               <YAxis tickFormatter={formatYAxis} />
               <Tooltip formatter={formatTooltip} />
               <Legend />
@@ -318,14 +479,14 @@ const ManageMoney = () => {
       </Card>
       
       {/* Top đơn hàng có giá trị cao */}
-      <Card title={`Top 5 đơn hàng giá trị cao - Tháng ${selectedMonth}/${selectedYear}`}>
+      <Card title={getTopTitle()}>
         <Table
           columns={topOrdersColumns}
           dataSource={getTopOrdersData()}
           rowKey="donDatXeId"
           pagination={false}
           loading={loading}
-          locale={{ emptyText: 'Không có dữ liệu trong tháng này' }}
+          locale={{ emptyText: 'Không có dữ liệu' }}
         />
       </Card>
     </div>

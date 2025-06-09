@@ -263,7 +263,7 @@ const RentalModal = ({ visible, onOk, onCancel, data, pricePerDay1 }) => {
                     src="https://cdn-icons-png.flaticon.com/512/2331/2331943.png"
                     alt="Tiền mặt"
                     className="w-8 h-8"
-                  />\
+                  />
                   <span className="text-[#777777] font-semibold">Tiền mặt</span>
                 </div>
                 <input

@@ -5,6 +5,7 @@ import ApiDonDat from "../api/ApiDonDat";
 import TableOrder from "../Components/Tableorder";
 import { FaUserEdit } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import Recomendbyhistory from "../Components/Recomendbyhistory";
 
 function Infouser() {
   const [userInfo, setUserInfo] = useState(null);
@@ -36,17 +37,17 @@ function Infouser() {
     fetchOrders();
   }, []);
 
-  // Hàm để hiển thị trạng thái đơn hàng dạng text
-  const getOrderStatusText = (status) => {
-    switch (status) {
-      case 0: return "Chờ xác nhận";
-      case 1: return "Đã xác nhận";
-      case 2: return "Đã hoàn thành";
-      case 3: return "Đã hủy";
-      case 4: return "Đang thuê";
-      default: return "Không xác định";
-    }
-  };
+  // // Hàm để hiển thị trạng thái đơn hàng dạng text
+  // const getOrderStatusText = (status) => {
+  //   switch (status) {
+  //     case 0: return "Chờ xác nhận";
+  //     case 1: return "Đã xác nhận";
+  //     case 2: return "Đã hoàn thành";
+  //     case 3: return "Đã hủy";
+  //     case 4: return "Đang thuê";
+  //     default: return "Không xác định";
+  //   }
+  // };
 
   return (
     <>
@@ -145,6 +146,10 @@ function Infouser() {
           </>
         )}
       </div>
+       {/* Chỉ render khi userInfo đã có dữ liệu */}
+       {userInfo && <Recomendbyhistory data={userInfo.id} />}
+    
+
     </>
   );
 }

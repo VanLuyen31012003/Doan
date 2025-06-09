@@ -51,7 +51,22 @@ const ApiMauXe = {
     getallLoaiXe: () => {
         const url = '/mauxe/getallloaixe';
         return axiosclient.get(url);
-    }
+    },
+    getrecommendedMauXe: (mauxeid) => {
+        let url = `/similar-mauxe?mauXeId=1`;
+        if(mauxeid)
+            url = `/similar-mauxe?mauXeId=${mauxeid}`;
+        return axiosclient.get(url);
+    },
+    getrecomendbyhistory: (khachhangid) => {
+   
+           let url = `/vector-based-enhanced?khachHangId=${khachhangid}`;
+        return axiosclient.get(url);
+    },
+    getcountxe: () => {
+        const url = '/xe/gettongsoxe';
+        return axiosclient.get(url);
+    },
     
     
 }

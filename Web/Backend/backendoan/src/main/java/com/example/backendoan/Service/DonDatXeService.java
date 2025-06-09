@@ -523,4 +523,7 @@ if (currentSoLuotDat == null) {
                 .build()).collect(Collectors.toList());
 
     }
+    public long countalldondat() {
+        return donDatXeRepository.count();
+    }
  }

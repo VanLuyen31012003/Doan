@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FaMotorcycle } from "react-icons/fa";
 import { FaHandshakeSimple } from "react-icons/fa6";
 import { PiSealPercentFill } from "react-icons/pi";
@@ -6,16 +6,11 @@ import { LuClock } from "react-icons/lu";
 import { PiCertificate } from "react-icons/pi";
 import { MdOutlineSupportAgent } from "react-icons/md";
 import { FaShieldAlt } from "react-icons/fa";
+import ApiDonDat from "../api/ApiDonDat";
+import axiosclient from "../api/Axiosclient";
+import ApiMauXe from "../api/ApiMauXe";
 
 const partner = [
-  // {
-  //   id: 1,
-  //   img: "https://cdn.brvn.vn/editor/2019/06/1540460966309Momo_1560238288.png"
-  // },
-  // {
-  //   id: 2,
-  //   img: "https://canhme.com/wp-content/uploads/2016/01/Paypal.png"
-  // },
   {
     id: 3,
     img: "https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png"
@@ -48,7 +43,20 @@ const star = [
 
 function Static() {
   const sectionRef = useRef(null);
-  
+  const [countDonDat, setCountDonDat] = useState(0);
+  const [countXe, setCountXe] = useState(0);
+
+  useEffect(() => {
+    // Gọi API lấy tổng đơn đặt
+    ApiDonDat.getcountdondat()
+      .then(res => setCountDonDat(res.data))
+      .catch(() => setCountDonDat(0));
+    // Gọi API lấy tổng số xe
+    ApiMauXe.getcountxe()
+      .then(res => setCountXe(res.data))
+      .catch(() => setCountXe(0));
+  }, []);
+
   useEffect(() => {
     function animateCounter(id, target, duration, word) {
       let counter = document.getElementById(id);
@@ -72,8 +80,8 @@ function Static() {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            animateCounter("counter1", 6085, 2000, "+");
-            animateCounter("counter2", 386, 2000, "Xe");
+            animateCounter("counter1", countDonDat, 2000, "+");
+            animateCounter("counter2", countXe, 2000, "Xe");
             animateCounter("counter3", 98, 2000, "%");
             observer.disconnect();
           }
@@ -85,7 +93,7 @@ function Static() {
     if (sectionRef.current) {
       observer.observe(sectionRef.current);
     }
-  }, []);
+  }, [countDonDat, countXe]);
 
   return (
     <div>
@@ -94,7 +102,7 @@ function Static() {
         <div className="text-white w-[90%] md:w-[80%] lg:w-[75%] flex flex-col justify-start">
           <div className="w-full flex flex-col gap-4 items-center justify-between">
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-center">Những con số biết nói</h1>
-            <p className="text-lg md:text-xl text-center">Hãy tham khảo một vài thống kê của HIMOTO</p>
+            <p className="text-lg md:text-xl text-center">Hãy tham khảo một vài thống kê của MOTOVIP</p>
             <div className="w-full flex flex-col md:flex-row justify-around mt-8 md:mt-[10vh] gap-8 md:gap-4">
               <div className="w-full md:w-[30%] flex flex-col items-center justify-center gap-4">
                 <FaHandshakeSimple size={40} className="md:text-[60px]" />

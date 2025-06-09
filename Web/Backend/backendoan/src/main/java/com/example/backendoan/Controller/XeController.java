@@ -81,6 +81,8 @@ public class XeController {
                     .build();
 
     }
-
-
+    @GetMapping("/gettongsoxe")
+    public long getTotalXeCount() {
+        return xeService.getTongSoXe();
+    }
 }

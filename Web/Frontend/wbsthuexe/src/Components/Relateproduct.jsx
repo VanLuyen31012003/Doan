@@ -1,32 +1,32 @@
-import React, {  useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ApiMauXe from "../api/ApiMauXe";
 import { useNavigate } from "react-router-dom";
 
 function RelateProduct(props) {
   const { data } = props;
-    const [product, setProduct] = useState([]);
-    const navigate = useNavigate();
+  const [product, setProduct] = useState([]);
+  const navigate = useNavigate();
+
   const fetchdata = async () => {
     try {
-      console.log(
-        "data.loaiXeReponse.loaixeXeid",
-        data.loaiXeReponse.loaixeXeid
-      );
-      const response = await ApiMauXe.getMauXeByloaixe(
-        data.loaiXeReponse.loaixeXeid
-      ); // Gọi API để lấy dữ liệu sản phẩm theo id
-      setProduct(response.data.data.content); // Cập nhật state với dữ liệu sản phẩm
-      console.log("day là relate ", response.data.data); // In dữ liệu sản phẩm ra console để kiểm tra
+      console.log("Fetching recommended products for mauXeId:", data.mauXeId);
+      const response = await ApiMauXe.getrecommendedMauXe(data.mauXeId);
+      
+      // Sử dụng similar_mau_xe từ response mới
+      setProduct(response.data.data.similar_mau_xe || []);
+      console.log("Similar products:", response.data.data.similar_mau_xe);
     } catch (error) {
-      console.error("Error fetching product data:", error); // Xử lý lỗi nếu có
+      console.error("Error fetching product data:", error);
     }
   };
-   const formatPrice = (price) => {
+
+  const formatPrice = (price) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(price);
   };
+
   useEffect(() => {
     fetchdata();
   }, [data]);
@@ -39,45 +39,53 @@ function RelateProduct(props) {
         </h2>
 
         {/* Vùng cuộn ngang */}
-        <div className="overflow-x-auto scrollbar-hide scroll-container ">
-          {console.log("day là id loai xe", data.loaiXeReponse?.loaixeXeid)}
-
+        <div className="overflow-x-auto scrollbar-hide scroll-container">
           <div className="flex gap-6">
             {product?.map((item, index) => (
               <div
-                key={index}
-                    className="min-w-[250px] snap-start flex flex-col gap-3 bg-white text-[#555555] shadow-lg rounded-lg py-4"
+                key={item.mau_xe_id} // Sử dụng mau_xe_id thay vì index
+                className="min-w-[250px] snap-start flex flex-col gap-3 bg-white text-[#555555] shadow-lg rounded-lg py-4 cursor-pointer hover:shadow-xl transition-shadow"
                 onClick={() => {
-                  navigate(`/chitietsp/${item.mauXeId}`)
+                  navigate(`/chitietsp/${item.mau_xe_id}`);
                 }}
-                
-
-                
               >
                 <img
                   className="w-full h-[150px] object-cover rounded-t-lg"
-                  src={item.anhDefault}
-                        alt={item.tenMau}
-                        
+                  src={item.anhdefault}
+                  alt={item.ten_mau}
                 />
-                <div className="flex justify-around ">
-                  <h1 className="px-2 font-semibold text-black">{item.tenMau}</h1>
-                <h1 className="px-2 font-bold fire "> {formatPrice(item.giaThueNgay)}</h1>
+                <div className="flex justify-between items-center px-2">
+                  <h1 className="font-semibold text-black">{item.ten_mau}</h1>
+                  <h1 className="font-bold text-[#DD5C36]">
+                    {formatPrice(item.gia_thue_ngay)}
+                  </h1>
                 </div>
-                
-                <ul className="px-4">
-                  {/* <li className="flex gap-1 items-center"><TiTick /> 2 mũ bảo hiểm</li>
-                    <li className="flex gap-1 items-center"><TiTick /> 2 áo mưa dùng 1 lần</li>
-                    <li className="flex gap-1 items-center"><TiTick /> Bảo hiểm + Đăng kí photo</li> */}
-                </ul>
-                <button className="ml-3 w-[40%] p-2 rounded bg-[#DD5C36] font-medium text-white">
-                  Đặt xe 
-                  
-                </button>
+
+                {/* Hiển thị độ tương đồng nếu có */}
+                {item.similarity && (
+                  <div className="px-2">
+                    <span className="text-xs text-green-600 bg-green-100 px-2 py-1 rounded">
+                      Tương đồng: {(item.similarity * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                )}
+
+                <div className="px-2">
+                  <button className="w-full p-2 rounded bg-[#DD5C36] font-medium text-white hover:bg-[#bb4a2e] transition-colors">
+                    Đặt xe
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         </div>
+
+        {/* Hiển thị thông báo nếu không có sản phẩm liên quan */}
+        {product.length === 0 && (
+          <div className="text-center text-gray-500 py-8">
+            Không có sản phẩm liên quan nào.
+          </div>
+        )}
       </div>
     </div>
   );

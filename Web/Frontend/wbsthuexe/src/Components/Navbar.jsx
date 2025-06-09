@@ -8,8 +8,8 @@ import { getToken, removeToken } from "../lib/authenticate";
 
 const tabs = [
   { id: 1, name: "Trang chủ", link: "/" },
-  { id: 2, name: "Bảng giá", link: "/banggia" },
-  { id: 3, name: "Đặt xe", link: "/datxe" },
+  { id: 2, name: "Tin tức HOT", link: "/postwordpress" },
+  // { id: 3, name: "Đặt xe", link: "/datxe" },
   { id: 4, name: "Liên hệ", link: "/lienhe" },
   { id: 5, name: "Sản phẩm", link: "/allsanpham" },
 ];
@@ -40,16 +40,19 @@ function Navbar() {
   };
 
   return (
-    <div className="w-full  md:top-0 md:left-0 md:z-10 flex flex-col-reverse md:flex-row bg-white text-[#777777] h-[110px] items-center justify-around">
+    <div className="w-full   md:top-0 md:left-0 md:z-10 flex flex-col-reverse md:flex-row bg-white text-[#777777] h-[110px] items-center justify-around">
   
       <h1 style={{ fontSize: "48px", fontWeight: "1000", color: "black" }}> MOTOVIP</h1>
 
-      <div className="md:ml-[25%] flex flex-col gap-3 relative">
-        <div className="flex gap-1 justify-end items-center">
-          <h1 className="flex gap-1 text-sm font-semibold">
+      <div className="md:ml-[25%]  flex flex-col gap-3 relative">
+        <div className="flex gap-1 font-bold  justify-end items-center">
+          {/* <div className="flex flex-col "> */}
             Liên Hệ
-            <p className="text-[#dd5c36] font-bold">0886184116</p>
-          </h1>
+          <h8 className="flex gap-1 text-lg font-bold">
+            <h8 className="text-[#dd5c36] font-bold">0886184116</h8>
+          </h8>
+          {/* </div> */}
+          
 
           {isLogin ? (
             <div className="relative group">

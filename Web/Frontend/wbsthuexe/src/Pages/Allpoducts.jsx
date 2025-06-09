@@ -240,18 +240,17 @@ const fetchProducts = async () => {
                 <Card
                   hoverable
                   cover={
-                    <div className="flex justify-center items-center h-[200px]">
-                      <Image
-                        width={280}
-                        height={200}
-                        className="object-center"
-                        style={{ objectFit: "cover" }}
-                        src={product.anhDefault || "link ảnh mặc định"}
-                        alt={product.tenMau}
-                        preview={false}
-                      />
-                    </div>
-                  }
+  <div className="flex justify-center items-center h-[200px] w-full overflow-hidden">
+    <Image
+      width="100%"
+      height="100%"
+      style={{ objectFit: "cover" }}
+      src={product.anhDefault || "link ảnh mặc định"}
+      alt={product.tenMau}
+      preview={false}
+    />
+  </div>
+}
                   className="h-full flex flex-col "
                 >
                   <div className="flex flex-col flex-grow">

@@ -36,6 +36,7 @@ public class SecurityConfig {
             "/mauxe/getallmauxe","/mauxe/gettop10mauxe","/mauxe/getmauxe/**","/mauxe/search",
             "/mauxe/getmauxetheoloaixe/**","/danhgia/getalldanhgiabyid/**","/payment/api/payment/create"
             ,"/payment/api/payment/vnpay-return","/auth/testmail","/xe/getallxe","/api/chat/history","/api/chat/conversations",
+            "/similar-mauxe","/dondatxe/gettongdondat","/xe/gettongsoxe"
     };
 
     @Bean

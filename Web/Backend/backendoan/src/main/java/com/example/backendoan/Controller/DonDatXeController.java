@@ -116,7 +116,15 @@ public class DonDatXeController {
                 .data(donDatXeService.updateDonDatXenytoken(id, donDatXeRequest))
                 .build();
     }
+    @GetMapping("/gettongdondat")
+    public long gettongdondat()
+    {
+        long a= donDatXeService.countalldondat();
+        return a ;
+    }
+
 
 
 
 }
+

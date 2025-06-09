@@ -276,7 +276,7 @@ function InfoKhachHang() {
         type="error"
         showIcon
         action={
-          <Button onClick={() => navigate('/dashboard/khachang')} type="primary">
+          <Button onClick={() => navigate(-1)} type="primary">
             Quay lại danh sách
           </Button>
         }
@@ -292,7 +292,7 @@ function InfoKhachHang() {
       <div className="flex items-center mb-4">
         <Button 
           icon={<ArrowLeftOutlined />} 
-          onClick={() => navigate('/dashboard/khachang')}
+          onClick={() => navigate(-1)}
           className="mr-4"
         >
           Quay lại

@@ -88,6 +88,9 @@ public class XeService {
             return chiTietDonDatXeRepository.findBookedVehicles(adjustedStartDate, adjustedEndDate);
         }
     }
+    public Long getTongSoXe() {
+        return xeRepository.count();
+    }
 
 
 }

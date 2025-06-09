@@ -2,9 +2,9 @@ import "./App.css";
 import Footer from "./Components/Footer";
 import Navbar from "./Components/Navbar";
 import Allpoducts from "./Pages/Allpoducts";
-import Bangia from "./Pages/Bangia";
 import RentalForm from "./Pages/Datxe";
 import Detailproduct from "./Pages/Detailproduct";
+import ChChiTietPost from "./Pages/Bangia";
 import Home from "./Pages/Home";
 import { Routes, Route } from "react-router-dom";
 import Login from "./Pages/Login";
@@ -17,6 +17,7 @@ import Detailorder from "./Pages/Detailorder";
 import PaymentResult from "./Pages/PaymentResult";
 import ConTact from "./Pages/Contact";
 import EditProfile from "./Pages/EditProfile";
+import Allposts from "./Pages/Allposts";
 
 function App() {
   return (
@@ -24,7 +25,8 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/banggia" element={<Bangia />} />
+        <Route path="/postwordpress" element={<Allposts />} />
+        <Route path="/chitietposts/:id" element={<ChChiTietPost/>} />
         <Route path="/datxe" element={<RentalForm />} />
         <Route path="/lienhe" element={<ConTact />} />
         <Route path="/chitietsp/:id" element={<Detailproduct />} />
@@ -36,6 +38,7 @@ function App() {
         <Route path="/payment-result" element={<PaymentResult />} />
         <Route path="/edit-profile" element={<EditProfile/>} />
         <Route path="/chitietdondat/:id" element={<Detailorder />} />
+
       </Routes>
       <ToastContainer
         position="top-center"

@@ -10,7 +10,7 @@ const Footer = () => {
         <div className="grid grid-colse-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-lg font-semibold mb-4">VỀ HIMOTO VIỆT NAM</h3>
+            <h3 className="text-lg font-semibold mb-4">VỀ MOTOTRIP VIỆT NAM</h3>
             <p className="text-sm mb-4">
               Giấy phép kinh doanh 0108211373 cấp ngày 02/04/2018 bởi sở kế hoạch và đầu tư thành phố Hà Nội.
             </p>
@@ -49,7 +49,7 @@ const Footer = () => {
             </div>
             <div className="flex items-center">
               <Mail className="h-5 w-5 mr-2" />
-              <p className="text-sm">hello@himoto.vn</p>
+              <p className="text-sm">hello@MOTOTRIP.vn</p>
             </div>
           </div>
 
@@ -79,10 +79,10 @@ const Footer = () => {
         {/* Copyright Bottom Bar */}
         <div className="mt-8 pt-4 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm mb-4 md:mb-0">
-            Copyright © 2025 Website thuộc bản quyền của HIMOTO Việt Nam
+            Copyright © 2025 Website thuộc bản quyền của MOTOTRIP Việt Nam
           </p>
           <div className="flex space-x-4">
-            <Link to="/gioi-thieu" className="text-sm hover:underline">Giới thiệu HIMOTO</Link>
+            <Link to="/gioi-thieu" className="text-sm hover:underline">Giới thiệu MOTOTRIP</Link>
             <Link to="/lien-he" className="text-sm hover:underline">Liên hệ</Link>
             <Link to="/chinh-sach-rieng-tu" className="text-sm hover:underline">Chính sách riêng tư</Link>
             <Link to="/bao-mat" className="text-sm hover:underline">Chính sách bảo mật</Link>
@@ -93,7 +93,7 @@ const Footer = () => {
       {/* Floating buttons */}
       <div className="fixed bottom-4 right-4 flex flex-col space-y-2">
         <motion.a 
-          href="https://facebook.com/himoto.vn" 
+          href="https://facebook.com/MOTOTRIP.vn" 
           className="bg-blue-500 text-white p-3 rounded-full"
           animate={{ rotate: [0, 360, 0] }}
           transition={{ repeat: Infinity, repeatDelay: 3, duration: 1 }}
