@@ -24,5 +24,9 @@ const ApiNguoiDung = {
         const url = `/nguoidung/deletenguoidung/${id}`;
         return axiosclient.delete(url);
     },
+    getalldondatbyemailnguoidung: (email) => {
+        const url = `/dondatxe/getalldonbynguoidung/${email}`;
+        return axiosclient.get(url);
+    },
 }
 export default ApiNguoiDung;

@@ -6,6 +6,7 @@ import com.example.backendoan.Dto.Response.MauXeResponse;
 import com.example.backendoan.Entity.AnhXe;
 import com.example.backendoan.Entity.HangXe;
 import com.example.backendoan.Entity.LoaiXe;
+import com.example.backendoan.Entity.ThongTinKyThuat;
 import com.example.backendoan.Service.MauXeService;
 import lombok.extern.java.Log;
 import org.springframework.core.io.Resource;
@@ -210,7 +211,24 @@ public class MauXeController {
                 .build();
     }
 
-    //viet api lay mau xe theo hang xe
+    //viet api update thong tin ki thuat
+    @PutMapping("/updatethongtinkythuat/{mauXeId}")
+public ApiResponse<String> updateThongTinKyThuat(
+        @PathVariable Integer mauXeId,
+        @RequestBody ThongTinKyThuat thongTinKyThuatRequest) {
+    try {
+        String result = mauXeService.updatethongtinkithuat(mauXeId, thongTinKyThuatRequest);
+        return ApiResponse.<String>builder()
+                .success(true)
+                .message("Cập nhật thông tin kỹ thuật thành công")
+                .data(result)
+                .build();
+    } catch (RuntimeException e) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+    } catch (Exception e) {
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi hệ thống: " + e.getMessage());
+    }
+}
 
 
 

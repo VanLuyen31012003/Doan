@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Image, Button, Tag, Space, Pagination, Typography, Card, Input, Modal, Form, Select, InputNumber, Upload, message, Popconfirm } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, UploadOutlined, LoadingOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, PlusOutlined, SearchOutlined, UploadOutlined, LoadingOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import ApiLoaiXeVaHangXe from '../../Api/ApiLoaiXeVaHangXe';
 import ApiMauXe from '../../Api/ApiMauXe';
@@ -11,6 +12,7 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 const ManageMauxe = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [modelList, setModelList] = useState([]);
   const [pagination, setPagination] = useState({
@@ -231,11 +233,6 @@ const ManageMauxe = () => {
         formData.append('anhDefaultUrl', imageUrl);
       }
       
-      // const response = await axios.put(`http://localhost:8080/mauxe/updatemauxe/${currentModel.mauXeId}`, formData, {
-      //   headers: {
-      //     'Content-Type': 'multipart/form-data'
-      //   }
-      // });
       const response = await ApiMauXe.updateMauXe(currentModel.mauXeId, formData);
       
       if (response.data.success) {
@@ -323,11 +320,21 @@ const ManageMauxe = () => {
     {
       title: 'Thao tác',
       key: 'action',
+      width: 200,
       render: (_, record) => (
-        <Space size="middle">
+        <Space size="small">
           <Button 
             type="primary" 
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => navigate(`/dashboard/mauxe/${record.mauXeId}`)}
+          >
+            Chi tiết
+          </Button>
+          <Button 
+            type="default" 
             icon={<EditOutlined />}
+            size="small"
             onClick={() => showEditModal(record)}
           >
             Sửa
@@ -339,7 +346,11 @@ const ManageMauxe = () => {
             okText="Xóa"
             cancelText="Hủy"
           >
-            <Button danger icon={<DeleteOutlined />}>
+            <Button 
+              danger 
+              icon={<DeleteOutlined />}
+              size="small"
+            >
               Xóa
             </Button>
           </Popconfirm>

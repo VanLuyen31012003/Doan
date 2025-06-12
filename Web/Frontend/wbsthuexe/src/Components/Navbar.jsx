@@ -12,6 +12,7 @@ const tabs = [
   // { id: 3, name: "Đặt xe", link: "/datxe" },
   { id: 4, name: "Liên hệ", link: "/lienhe" },
   { id: 5, name: "Sản phẩm", link: "/allsanpham" },
+  {id:6, name: "Hướng dẫn", link: "/huongdan"},
 ];
 
 function Navbar() {

@@ -68,6 +68,14 @@ public class DonDatXeController {
                         .data(donDatXeService.getDonDatXeByKhachangId(id))
                         .build();
     }
+    @GetMapping("/getalldonbynguoidung/{email}")
+    public ApiResponse< List<DonDatXeResponse>> getDonDatXeByNguoiDungEmail(@PathVariable String email) {
+
+        return ApiResponse.<List<DonDatXeResponse>>builder()
+                .message("Lấy danh sách đơn đặt xe theo nguoi dung thành công")
+                .data(donDatXeService.getDonDatXeByNguoiDungEmail(email))
+                .build();
+    }
     @GetMapping("/getdonhangbytoken")
     public ApiResponse<List<DonDatXeResponse>> getDonDatXeByToken() {
         return ApiResponse.<List<DonDatXeResponse>>builder()
@@ -122,6 +130,7 @@ public class DonDatXeController {
         long a= donDatXeService.countalldondat();
         return a ;
     }
+
 
 
 

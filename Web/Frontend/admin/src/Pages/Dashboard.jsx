@@ -19,6 +19,7 @@ import ManageChat from '../Components/ManageChart/MangageChat';
 import DetailOrder from '../Components/DetailOrder/DetailOrder';
 import ManageKhachHang from '../Components/ManageKhachHang/ManageKhachHang';
 import InfoKhachHang from '../Components/ManageKhachHang/InfoKhachHang';
+import DetailMauXe from '../Components/ManageMauXe/DetailMauXe';
 
 const { Header, Sider, Content } = Layout;
 
@@ -134,6 +135,7 @@ const Dashboard = () => {
             <Routes>
               <Route path="/" element={<ManageChat />} />
               <Route path="/mauxe" element={<ManageMauxe />} />
+              <Route path="/mauxe/:id" element={<DetailMauXe />} />
               <Route path="/khachang" element={<ManageKhachHang />} />
               <Route path="/khachang/:id" element={<InfoKhachHang />} />
               <Route path="/users" element={<ManageUsers />} />

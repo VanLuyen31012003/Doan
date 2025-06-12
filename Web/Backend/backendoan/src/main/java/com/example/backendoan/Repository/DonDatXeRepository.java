@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface DonDatXeRepository extends JpaRepository<DonDatXe, Integer> {
     List<DonDatXe> findByKhachHangId(Integer khachHangId);
+    List<DonDatXe> findByNguoiDungId(Integer nguoiDungId);
     List<DonDatXe> findByTrangThai(Integer trangThai);
     @Query("SELECT d FROM DonDatXe d JOIN ChiTietDonDatXe c ON d.donDatXeId = c.donDatXe.donDatXeId " +
             "WHERE c.xeId = :xeId AND d.trangThai IN (1, 0) " +

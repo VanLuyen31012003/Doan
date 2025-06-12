@@ -63,4 +63,17 @@ public class DanhGiaController {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
+    @DeleteMapping("/delete/{id}")
+    public ApiResponse<String> deleteDanhGia(@PathVariable int id) {
+        try {
+            danhGiaService.deleteDanhGia(id);
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Xóa đánh giá thành công")
+                    .data("Đánh giá với ID " + id + " đã được xóa.")
+                    .build();
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
+    }
 }

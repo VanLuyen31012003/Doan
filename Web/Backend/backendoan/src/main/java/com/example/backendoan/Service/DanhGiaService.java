@@ -121,5 +121,11 @@ public class DanhGiaService {
                 .ngayDanhGia(savedDanhGia.getNgayDanhGia().format(formatter))
                 .build();
     }
+    // xoa danh gia
+    public void deleteDanhGia(int id) {
+        DanhGia danhGia = danhGiaRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Danh gia với ID " + id + " không tồn tại"));
+        danhGiaRepository.delete(danhGia);
+    }
 
 }

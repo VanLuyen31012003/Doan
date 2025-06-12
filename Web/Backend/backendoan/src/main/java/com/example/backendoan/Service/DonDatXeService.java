@@ -526,4 +526,25 @@ if (currentSoLuotDat == null) {
     public long countalldondat() {
         return donDatXeRepository.count();
     }
- }
+    // get all don dat by id nguoi dung
+    public List<DonDatXeResponse> getDonDatXeByNguoiDungEmail(String email) {
+        NguoiDung nguoiDung = nguoiDungRepository.findByEmail(email).orElseThrow(() ->
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Không tìm thấy người dùng với email: " + email));
+        List<DonDatXe> donDatXes = donDatXeRepository.findByNguoiDungId(nguoiDung.getNguoi_dung_id());
+        return donDatXes.stream().map(donDatXe -> DonDatXeResponse.builder()
+                .donDatXeId(donDatXe.getDonDatXeId())
+                .khachHangName(converTenkhachhang(donDatXe.getKhachHangId()))
+                .nguoiDungName(convertTennguoidung(donDatXe.getNguoiDungId()))
+                .ngayBatDau(donDatXe.getNgayBatDau())
+                .ngayKetThuc(donDatXe.getNgayKetThuc())
+                .tongTien(donDatXe.getTongTien())
+                .trangThai(donDatXe.getTrangThai())
+                .diaDiemNhanXe(donDatXe.getDiaDiemNhanXe())
+                .phuongThucThanhToan(donDatXe.getPhuongThucThanhToan())
+                .trangThaiThanhToan(donDatXe.getTrangThaiThanhToan())
+                .tongTienLandau(donDatXe.getTongTienLandau())
+                .hoaDonGiaHan(hoaDonGiaHanRepository.findByDonDatXeId(donDatXe.getDonDatXeId()))
+                .build()).collect(Collectors.toList());
+    }
+
+}

@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import jakarta.persistence.criteria.Predicate; // Đảm bảo import đúng Predicate từ JPA
 
@@ -414,5 +415,99 @@ public class MauXeService {
     {
         return hangXeRepository.findAll();
     }
+    //update thong tin ki thuat xe
+    public String updatethongtinkithuat(Integer mauXeId, ThongTinKyThuat thongTinKyThuatRequest) {
+    try {
+        // Kiểm tra mẫu xe có tồn tại không
+        MauXe mauXe = mauXeRepository.findById(mauXeId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy mẫu xe với ID: " + mauXeId));
+
+        // Tìm thông tin kỹ thuật hiện tại của mẫu xe
+        Optional<ThongTinKyThuat> existingThongTinOptional =
+                thongTinKyThuatRepository.findFirstByMauXeIdOrderByKyThuatIdAsc(mauXeId);
+
+        ThongTinKyThuat thongTinKyThuat;
+        
+        if (existingThongTinOptional.isPresent()) {
+            // Nếu đã có thông tin kỹ thuật, cập nhật
+            thongTinKyThuat = existingThongTinOptional.get();
+            
+            // Cập nhật các thông tin (chỉ cập nhật khi có giá trị mới)
+            if (thongTinKyThuatRequest.getDongCo() != null) {
+                thongTinKyThuat.setDongCo(thongTinKyThuatRequest.getDongCo());
+            }
+            if (thongTinKyThuatRequest.getDungTich() != null) {
+                thongTinKyThuat.setDungTich(thongTinKyThuatRequest.getDungTich());
+            }
+            if (thongTinKyThuatRequest.getNhienLieu() != null) {
+                thongTinKyThuat.setNhienLieu(thongTinKyThuatRequest.getNhienLieu());
+            }
+            if (thongTinKyThuatRequest.getKichThuoc() != null) {
+                thongTinKyThuat.setKichThuoc(thongTinKyThuatRequest.getKichThuoc());
+            }
+            if (thongTinKyThuatRequest.getTrongLuong() != null) {
+                thongTinKyThuat.setTrongLuong(thongTinKyThuatRequest.getTrongLuong());
+            }
+            if (thongTinKyThuatRequest.getLoaiHopSo() != null) {
+                thongTinKyThuat.setLoaiHopSo(thongTinKyThuatRequest.getLoaiHopSo());
+            }
+            if (thongTinKyThuatRequest.getHeThongPhanh() != null) {
+                thongTinKyThuat.setHeThongPhanh(thongTinKyThuatRequest.getHeThongPhanh());
+            }
+            if (thongTinKyThuatRequest.getPhuocTruoc() != null) {
+                thongTinKyThuat.setPhuocTruoc(thongTinKyThuatRequest.getPhuocTruoc());
+            }
+            if (thongTinKyThuatRequest.getPhuocSau() != null) {
+                thongTinKyThuat.setPhuocSau(thongTinKyThuatRequest.getPhuocSau());
+            }
+            if (thongTinKyThuatRequest.getDungTichBinhXang() != null) {
+                thongTinKyThuat.setDungTichBinhXang(thongTinKyThuatRequest.getDungTichBinhXang());
+            }
+            if (thongTinKyThuatRequest.getTieuThuNhienLieu() != null) {
+                thongTinKyThuat.setTieuThuNhienLieu(thongTinKyThuatRequest.getTieuThuNhienLieu());
+            }
+            if (thongTinKyThuatRequest.getLoaiLop() != null) {
+                thongTinKyThuat.setLoaiLop(thongTinKyThuatRequest.getLoaiLop());
+            }
+            if (thongTinKyThuatRequest.getKichThuocLopTruoc() != null) {
+                thongTinKyThuat.setKichThuocLopTruoc(thongTinKyThuatRequest.getKichThuocLopTruoc());
+            }
+            if (thongTinKyThuatRequest.getKichThuocLopSau() != null) {
+                thongTinKyThuat.setKichThuocLopSau(thongTinKyThuatRequest.getKichThuocLopSau());
+            }
+            if (thongTinKyThuatRequest.getLoaiDen() != null) {
+                thongTinKyThuat.setLoaiDen(thongTinKyThuatRequest.getLoaiDen());
+            }
+        } else {
+            // Nếu chưa có thông tin kỹ thuật, tạo mới
+            thongTinKyThuat = ThongTinKyThuat.builder()
+                    .mauXeId(mauXeId)
+                    .dongCo(thongTinKyThuatRequest.getDongCo())
+                    .dungTich(thongTinKyThuatRequest.getDungTich())
+                    .nhienLieu(thongTinKyThuatRequest.getNhienLieu())
+                    .kichThuoc(thongTinKyThuatRequest.getKichThuoc())
+                    .trongLuong(thongTinKyThuatRequest.getTrongLuong())
+                    .loaiHopSo(thongTinKyThuatRequest.getLoaiHopSo())
+                    .heThongPhanh(thongTinKyThuatRequest.getHeThongPhanh())
+                    .phuocTruoc(thongTinKyThuatRequest.getPhuocTruoc())
+                    .phuocSau(thongTinKyThuatRequest.getPhuocSau())
+                    .dungTichBinhXang(thongTinKyThuatRequest.getDungTichBinhXang())
+                    .tieuThuNhienLieu(thongTinKyThuatRequest.getTieuThuNhienLieu())
+                    .loaiLop(thongTinKyThuatRequest.getLoaiLop())
+                    .kichThuocLopTruoc(thongTinKyThuatRequest.getKichThuocLopTruoc())
+                    .kichThuocLopSau(thongTinKyThuatRequest.getKichThuocLopSau())
+                    .loaiDen(thongTinKyThuatRequest.getLoaiDen())
+                    .build();
+        }
+
+        // Lưu vào database
+        thongTinKyThuatRepository.save(thongTinKyThuat);
+        
+        return "Cập nhật thông tin kỹ thuật thành công cho mẫu xe: " + mauXe.getTenMau();
+        
+    } catch (Exception e) {
+        throw new RuntimeException("Lỗi khi cập nhật thông tin kỹ thuật: " + e.getMessage());
+    }
+}
 
 }
