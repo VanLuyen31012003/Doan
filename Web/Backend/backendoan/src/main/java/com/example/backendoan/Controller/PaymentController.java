@@ -5,24 +5,29 @@ import com.example.backendoan.Entity.DonDatXe;
 import com.example.backendoan.Repository.ChiTietDonDatXeRepository;
 import com.example.backendoan.Repository.DonDatXeRepository;
 import com.example.backendoan.Repository.KhachHangRepository;
+import com.example.backendoan.Service.CurrencyService;
 import com.example.backendoan.Service.MailService;
+import com.paypal.api.payments.*;
+import com.paypal.base.rest.APIContext;
+import com.paypal.base.rest.PayPalRESTException;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.Currency;
 
 @RestController
 @RequestMapping("/payment")
@@ -35,6 +40,10 @@ public class PaymentController {
     ChiTietDonDatXeRepository chiTietDonDatXeRepository;
     @Autowired
     KhachHangRepository khachHangRepository;
+    @Autowired
+    private APIContext apiContext;
+    @Autowired
+    private CurrencyService currency;
 
     @GetMapping("/api/payment/create")
     public ResponseEntity<?> createPayment(HttpServletRequest request,
@@ -182,6 +191,163 @@ public class PaymentController {
                 .header("Location", redirectUrl)
                 .body("Redirecting to frontend...");
     }
+   // pay pal paymet
+   @PostMapping("/paypal")
+   public ResponseEntity createPayment(  @RequestParam("amount") String amount1,
+                                 @RequestParam("orderId") String orderId) {
+
+       Amount amount = new Amount();
+       // Chuyển đổi VND sang USD
+       Double amountUSD = currency.convertVNDToUSD(Double.parseDouble(amount1));
+//       Double exchangeRate = currency.getCurrentExchangeRate();
+       String exchangeRateString = String.format("%.2f", amountUSD);
+       amount.setCurrency("USD");
+       amount.setTotal(exchangeRateString); // số tiền
+
+       Transaction transaction = new Transaction();
+       transaction.setAmount(amount);
+       transaction.setDescription("Thuê xe máy");
+       transaction.setCustom(orderId); // ID đơn đặt xe hoặc thông tin khác nếu cần
+
+       List<Transaction> transactions = new ArrayList<>();
+       transactions.add(transaction);
+
+       Payer payer = new Payer();
+       payer.setPaymentMethod("paypal");
+
+       RedirectUrls redirectUrls = new RedirectUrls();
+       redirectUrls.setCancelUrl("http://localhost:8080/payment/paypal/cancel?orderId=" + orderId);
+       redirectUrls.setReturnUrl("http://localhost:8080/payment/paypal/success");
+
+       Payment payment = new Payment();
+       payment.setIntent("sale");
+       payment.setPayer(payer);
+       payment.setTransactions(transactions);
+       payment.setRedirectUrls(redirectUrls);
+
+       try {
+           Payment createdPayment = payment.create(apiContext);
+           for (Links link : createdPayment.getLinks()) {
+               if (link.getRel().equals("approval_url")) {
+                   return ResponseEntity.ok(Map.of("paymentUrl", link.getHref()));
+               }
+           }
+       } catch (PayPalRESTException e) {
+           e.printStackTrace();
+       }
+
+       return ResponseEntity.badRequest().body("loi khi tao thanh toan paypal");
+   }
+    @GetMapping("/paypal/success")
+    public void paypalSuccess(@RequestParam("paymentId") String paymentId,
+                              @RequestParam("PayerID") String payerId,
+                              HttpServletResponse response) {
+        try {
+            // Lấy thông tin thanh toán ban đầu
+            Payment payment = Payment.get(apiContext, paymentId);
+
+            // Nếu đã approved thì không cần execute lại
+            if ("approved".equals(payment.getState())) {
+                String frontendUrl = "http://localhost:3000/paypal-result?status=already_processed";
+                response.sendRedirect(frontendUrl);
+                return;
+            }
+
+            // Nếu chưa thì thực hiện thanh toán
+            PaymentExecution paymentExecution = new PaymentExecution();
+            paymentExecution.setPayerId(payerId);
+
+            Payment executedPayment = payment.execute(apiContext, paymentExecution);
+
+            if (executedPayment != null && "approved".equals(executedPayment.getState())) {
+                Transaction transaction = executedPayment.getTransactions().get(0);
+                String customData = transaction.getCustom(); // ID đơn đặt xe bạn đã truyền từ lúc tạo payment
+                Integer idondatxe = Integer.parseInt(customData);
+                String amount = transaction.getAmount().getTotal();
+
+                // Cập nhật đơn đặt xe
+                DonDatXe donDatXe = donDatXeRepository.findById(idondatxe)
+                        .orElseThrow(() -> new RuntimeException("Order not found"));
+                donDatXe.setTrangThaiThanhToan(1);
+                donDatXeRepository.save(donDatXe);
+                Double amountVND =  donDatXe.getTongTien().doubleValue();
+
+                // Gửi email xác nhận nếu có
+                try {
+                    String email = khachHangRepository.findById(donDatXe.getKhachHangId())
+                            .get()
+                            .getEmail();
+
+                    mailService.sendBookingConfirmationEmail(
+                            email,
+                            donDatXe,
+                            chiTietDonDatXeRepository.findByDonDatXe_DonDatXeId(donDatXe.getDonDatXeId())
+                    );
+                } catch (MessagingException e) {
+                    System.out.println("Lỗi khi gửi email: " + e.getMessage());
+                }
+
+
+                // Redirect về trang React (frontend)
+                String frontendUrl = "http://localhost:3000/paypal-result"
+                        + "?id=" + idondatxe
+                        + "&amount=" + amountVND
+                        + "&status=success";
+                response.sendRedirect(frontendUrl);
+            } else {
+                // Thanh toán không thành công
+                String frontendUrl = "http://localhost:3000/paypal-result?status=fail";
+                response.sendRedirect(frontendUrl);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                String frontendUrl = "http://localhost:3000/paypal-result?status=error";
+                response.sendRedirect(frontendUrl);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    @GetMapping("/paypal/cancel")
+    public void paypalCancel(@RequestParam(value = "token", required = false) String token,
+                             @RequestParam(value = "orderId", required = false) String orderId,
+                             HttpServletResponse response) {
+        try {
+            System.out.println("Payment cancelled with token: " + token + ", orderId: " + orderId);
+
+            if (orderId != null) {
+                try {
+                    DonDatXe donDatXe = donDatXeRepository.findById(Integer.parseInt(orderId))
+                            .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
+                    donDatXeRepository.delete(donDatXe);
+                    System.out.println("Order deleted: " + orderId);
+                } catch (NumberFormatException e) {
+                    System.out.println("Invalid orderId format: " + e.getMessage());
+                } catch (RuntimeException e) {
+                    System.out.println(e.getMessage());
+                }
+            } else {
+                System.out.println("No orderId provided for cancellation");
+            }
+
+            String frontendUrl = "http://localhost:3000/paypal-result"
+                    + "?status=cancel"
+                    + "&token=" + (token != null ? URLEncoder.encode(token, StandardCharsets.UTF_8) : "null")
+                    + (orderId != null ? "&id=" + URLEncoder.encode(orderId, StandardCharsets.UTF_8) : "");
+            response.sendRedirect(frontendUrl);
+        } catch (IOException e) {
+            try {
+                String frontendUrl = "http://localhost:3000/paypal-result?status=error";
+                response.sendRedirect(frontendUrl);
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+
+
 
 
 

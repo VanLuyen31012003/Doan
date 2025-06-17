@@ -6,6 +6,7 @@ import com.example.backendoan.Entity.HangXe;
 import com.example.backendoan.Entity.LoaiXe;
 import com.example.backendoan.Entity.Xe;
 import com.example.backendoan.Service.XeService;
+import com.example.backendoan.Service.XeStatusScheduler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/xe")
 public class XeController {
+    @Autowired
+    XeStatusScheduler xeStatusScheduler;
     @Autowired
     XeService xeService;
     // Chức năng thêm xe
@@ -84,5 +87,21 @@ public class XeController {
     @GetMapping("/gettongsoxe")
     public long getTotalXeCount() {
         return xeService.getTongSoXe();
+    }
+    @PostMapping("/checkdondatxehethan")
+    public ApiResponse<String> checkOverdueRentals() {
+        try {
+            xeStatusScheduler.manualCheckOverdueRentals();
+            return ApiResponse.<String>builder()
+                    .success(true)
+                    .message("Đã thực hiện kiểm tra đơn đặt xe quá hạn")
+                    .data("Kiểm tra hoàn tất")
+                    .build();
+        } catch (Exception e) {
+            return ApiResponse.<String>builder()
+                    .success(false)
+                    .message("Lỗi khi kiểm tra: " + e.getMessage())
+                    .build();
+        }
     }
 }

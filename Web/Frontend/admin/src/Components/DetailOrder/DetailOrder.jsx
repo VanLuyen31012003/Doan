@@ -142,24 +142,61 @@ const DetailOrder = () => {
   };
   
   // Cập nhật trạng thái đơn hàng
-  const handleStatusChange = async (newStatus) => {
-    Modal.confirm({
-      title: `Xác nhận thay đổi trạng thái`,
-      content: `Bạn có chắc chắn muốn chuyển đơn hàng #${id} sang trạng thái ${statusMap[newStatus]}?`,
-      okText: 'Xác nhận',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          await ApiDonDat.updateDonDat(id, { trangThai: newStatus });
-          toast.success(`Đã cập nhật trạng thái đơn hàng #${id} thành công`);
+ // Thêm state để force re-render
+const [refreshKey, setRefreshKey] = useState(0);
+
+// Sửa lại hàm handleStatusChange
+const handleStatusChange = async (newStatus) => {
+  console.log("Bắt đầu handleStatusChange với status:", newStatus);
+  
+  try {
+    const confirmed = window.confirm(`Bạn có chắc chắn muốn chuyển đơn hàng #${id} sang trạng thái ${statusMap[newStatus]}?`);
+    
+    if (confirmed) {
+      console.log("User confirmed, đang gọi API...");
+      
+      if (!ApiDonDat.updateDonDat) {
+        console.error("ApiDonDat.updateDonDat không tồn tại");
+        toast.error("Lỗi: API method không tồn tại");
+        return;
+      }
+      
+      const response = await ApiDonDat.updateDonDat(id, { trangThai: newStatus });
+      console.log("API response:", response);
+      
+      if (response.data.success) {
+        toast.success(`Đã cập nhật trạng thái đơn hàng #${id} thành công`);
+        
+        // Cập nhật state và force re-render
+        setOrder(prevOrder => ({
+          ...prevOrder,
+          trangThai: newStatus
+        }));
+        
+        // Force re-render
+        setRefreshKey(prev => prev + 1);
+        
+        // Fetch lại data
+        setTimeout(() => {
           fetchOrder();
-        } catch (error) {
-          console.error("Error updating order status:", error);
-          toast.error("Có lỗi khi cập nhật trạng thái đơn hàng");
-        }
-      },
-    });
-  };
+        }, 100);
+        
+      } else {
+        throw new Error(response.data.message || 'Cập nhật thất bại');
+      }
+    } else {
+      console.log("User cancelled");
+    }
+  } catch (error) {
+    console.error("Lỗi trong handleStatusChange:", error);
+    toast.error("Có lỗi khi cập nhật trạng thái đơn hàng: " + error.message);
+  }
+};
+
+// Thêm refreshKey vào dependency của useEffect
+useEffect(() => {
+  fetchOrder();
+}, [id, refreshKey]);
   
   // Tạo PDF hợp đồng
   const generateContractPDF = async () => {

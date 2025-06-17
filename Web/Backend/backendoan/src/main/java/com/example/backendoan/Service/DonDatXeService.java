@@ -227,7 +227,6 @@ if (currentSoLuotDat == null) {
             } catch (MessagingException e) {
                 log.error("Failed to send booking confirmation email: {}", e.getMessage());
             }
-
         }
               return DonDatXeResponse.builder()
                 .donDatXeId(d.getDonDatXeId())

@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { MotoContext } from "../Context/MotoContext";
-import { Modal } from "antd";
+import { Modal, Spin } from "antd";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
@@ -79,6 +79,7 @@ function Cart() {
     setReturnDate(tomorrow);
     setRentalLocation("");
     setPaymentMethod("Tiền mặt");
+    setLoading(false);
     
     fetchUserInfo();
     setIsModalVisible(true);
@@ -95,6 +96,7 @@ function Cart() {
     setReturnDate(tomorrow);
     setRentalLocation("");
     setPaymentMethod("Tiền mặt");
+    setLoading(false);
     
     fetchUserInfo();
     setIsMultiModalVisible(true);
@@ -102,6 +104,15 @@ function Cart() {
 
   // Handle single item rental
   const handleOk = async () => {
+    // Prevent double click
+    if (loading) {
+      toast.warning("Đang xử lý đơn hàng, vui lòng chờ...", {
+        position: "top-center",
+        autoClose: 1500,
+      });
+      return;
+    }
+
     if (!rentalDate || !returnDate || !rentalLocation) {
       toast.error("Vui lòng nhập đầy đủ thông tin!", {
         position: "top-center",
@@ -149,13 +160,39 @@ function Cart() {
     try {
       const response = await ApiDonDat.addDonDatByToken(orderData);
       
-      if (paymentMethod === "Chuyển khoản") {
+      if (paymentMethod === "Chuyển khoản VNPAY" || paymentMethod === "Chuyển khoản PAYPAL") {
         try {
-          const response1 = await ApiPayment.payment(response.data.data.donDatXeId, response.data.data.tongTien);
-          window.location.href = response1.data.paymentUrl;
+          let response1;
+          if (paymentMethod === "Chuyển khoản PAYPAL") {
+             response1 = await ApiPayment.paymentPAYPAL(
+              response.data.data.donDatXeId,
+              response.data.data.tongTien
+            );
+          }
+          if (paymentMethod === "Chuyển khoản VNPAY") {
+             response1 = await ApiPayment.paymentVNPAY(
+              response.data.data.donDatXeId,
+              response.data.data.tongTien
+            );
+          }
+          
+          toast.success(paymentMethod === "Chuyển khoản PAYPAL" ? "Đang chuyển hướng đến trang thanh toán PayPal..." : "Đang chuyển hướng đến trang thanh toán VNPAY...", {
+            position: "top-center",
+            autoClose: 2000,
+          });
+          
+          setTimeout(() => {
+            window.location.href = response1.data.paymentUrl;
+          }, 1000);
+          
         } catch (error) {
           console.error("Lỗi khi tạo đường dẫn thanh toán:", error);
-          toast.error("Lỗi khi tạo đường dẫn thanh toán!");
+          toast.error(`Không thể tạo đường dẫn thanh toán ${paymentMethod === "Chuyển khoản PAYPAL" ? "PayPal" : "VNPAY"}`, {
+            position: "top-center",
+            autoClose: 2000,
+          });
+          setLoading(false);
+          return;
         }
       } else {
         toast.success("Đã đặt đơn thành công", {
@@ -174,12 +211,23 @@ function Cart() {
         autoClose: 2000,
       });
     } finally {
-      setLoading(false);
+      if (paymentMethod === "Tiền mặt") {
+        setLoading(false);
+      }
     }
   };
   
   // Handle multi-items rental
   const handleMultiOk = async () => {
+    // Prevent double click
+    if (loading) {
+      toast.warning("Đang xử lý đơn hàng, vui lòng chờ...", {
+        position: "top-center",
+        autoClose: 1500,
+      });
+      return;
+    }
+
     if (!rentalDate || !returnDate || !rentalLocation) {
       toast.error("Vui lòng nhập đầy đủ thông tin!", {
         position: "top-center",
@@ -230,13 +278,39 @@ function Cart() {
     try {
       const response = await ApiDonDat.addDonDatByToken(orderData);
       
-      if (paymentMethod === "Chuyển khoản") {
+      if (paymentMethod === "Chuyển khoản VNPAY" || paymentMethod === "Chuyển khoản PAYPAL") {
         try {
-          const response1 = await ApiPayment.payment(response.data.data.donDatXeId, response.data.data.tongTien);
-          window.location.href = response1.data.paymentUrl;
+          let response1;
+          if (paymentMethod === "Chuyển khoản PAYPAL") {
+             response1 = await ApiPayment.paymentPAYPAL(
+              response.data.data.donDatXeId,
+              response.data.data.tongTien
+            );
+          }
+          if (paymentMethod === "Chuyển khoản VNPAY") {
+             response1 = await ApiPayment.paymentVNPAY(
+              response.data.data.donDatXeId,
+              response.data.data.tongTien
+            );
+          }
+          
+          toast.success(paymentMethod === "Chuyển khoản PAYPAL" ? "Đang chuyển hướng đến trang thanh toán PayPal..." : "Đang chuyển hướng đến trang thanh toán VNPAY...", {
+            position: "top-center",
+            autoClose: 2000,
+          });
+          
+          setTimeout(() => {
+            window.location.href = response1.data.paymentUrl;
+          }, 1000);
+          
         } catch (error) {
           console.error("Lỗi khi tạo đường dẫn thanh toán:", error);
-          toast.error("Lỗi khi tạo đường dẫn thanh toán!");
+          toast.error(`Không thể tạo đường dẫn thanh toán ${paymentMethod === "Chuyển khoản PAYPAL" ? "PayPal" : "VNPAY"}`, {
+            position: "top-center",
+            autoClose: 2000,
+          });
+          setLoading(false);
+          return;
         }
       } else {
         toast.success("Đã đặt tất cả xe thành công", {
@@ -255,18 +329,24 @@ function Cart() {
         autoClose: 2000,
       });
     } finally {
-      setLoading(false);
+      if (paymentMethod === "Tiền mặt") {
+        setLoading(false);
+      }
     }
   };
 
   // Handle modal cancel button
   const handleCancel = () => {
-    setIsModalVisible(false);
+    if (!loading) {
+      setIsModalVisible(false);
+    }
   };
   
   // Handle multi-modal cancel button
   const handleMultiCancel = () => {
-    setIsMultiModalVisible(false);
+    if (!loading) {
+      setIsMultiModalVisible(false);
+    }
   };
 
   // Calculate total price for all items in cart
@@ -332,13 +412,23 @@ function Cart() {
                   <td className="border border-gray-300 px-4 py-2 justify-center items-center flex">
                     <button
                       onClick={() => showModal(item)} 
-                      className="px-4 py-2 bg-[#dd5c36] text-white rounded hover:bg-[#c04d2e] transition duration-300 mr-2"
+                      disabled={loading}
+                      className={`px-4 py-2 text-white rounded transition duration-300 mr-2 ${
+                        loading 
+                          ? 'bg-gray-400 cursor-not-allowed' 
+                          : 'bg-[#dd5c36] hover:bg-[#c04d2e]'
+                      }`}
                     >
                       Đặt xe
                     </button>
                     <button
                       onClick={() => removeFromCart(item.mauXeId)}
-                      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition duration-300"
+                      disabled={loading}
+                      className={`px-4 py-2 text-white rounded transition duration-300 ${
+                        loading 
+                          ? 'bg-gray-400 cursor-not-allowed' 
+                          : 'bg-gray-500 hover:bg-gray-600'
+                      }`}
                     >
                       Xóa
                     </button>
@@ -363,9 +453,14 @@ function Cart() {
             </div>
             <button 
               onClick={showMultiModal}
-              className="px-6 py-3 bg-[#dd5c36] text-white rounded hover:bg-[#c04d2e] transition duration-300 font-semibold"
+              disabled={loading}
+              className={`px-6 py-3 text-white rounded transition duration-300 font-semibold ${
+                loading 
+                  ? 'bg-gray-400 cursor-not-allowed' 
+                  : 'bg-[#dd5c36] hover:bg-[#c04d2e]'
+              }`}
             >
-              Đặt tất cả xe
+              {loading ? "Đang xử lý..." : "Đặt tất cả xe"}
             </button>
           </div>
         </>
@@ -377,11 +472,18 @@ function Cart() {
         visible={isModalVisible}
         onOk={handleOk}
         onCancel={handleCancel}
+        closable={!loading}
+        maskClosable={!loading}
         footer={[
           <button
             key="cancel"
             onClick={handleCancel}
-            className="bg-gray-300 rounded px-4 py-2 hover:bg-gray-400 ml-2"
+            disabled={loading}
+            className={`rounded px-4 py-2 ml-2 transition-colors ${
+              loading 
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
+            }`}
           >
             Hủy
           </button>,
@@ -389,14 +491,40 @@ function Cart() {
             key="confirm"
             onClick={handleOk}
             disabled={loading}
-            className={`bg-[#dd5c36] px-4 py-2 rounded hover:bg-[#c04d2e] ml-6 text-white ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
+            className={`px-4 py-2 rounded transition-all ml-6 text-white font-semibold ${
+              loading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-[#dd5c36] hover:bg-[#c04d2e] hover:scale-105'
+            }`}
           >
-            {loading ? "Đang xử lý..." : "Xác nhận"}
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <Spin size="small" className="mr-2" />
+                {paymentMethod === "Chuyển khoản PAYPAL" ? "Đang xử lý PayPal..." : 
+                 paymentMethod === "Chuyển khoản VNPAY" ? "Đang xử lý VNPAY..." : "Đang xử lý..."}
+              </span>
+            ) : (
+              "Xác nhận"
+            )}
           </button>,
         ]}
         width={700}
       >
-        <div className="p-4">
+        <div className="p-4 relative">
+          {/* Loading Overlay */}
+          {loading && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50 rounded-lg">
+              <Spin size="large" />
+              <p className="mt-4 text-lg font-semibold text-gray-700">
+                {paymentMethod === "Chuyển khoản PAYPAL" 
+                  ? "Đang tạo liên kết thanh toán PayPal..." 
+                  : paymentMethod === "Chuyển khoản VNPAY"
+                  ? "Đang tạo liên kết thanh toán VNPAY..."
+                  : "Đang xử lý đơn hàng..."}
+              </p>
+            </div>
+          )}
+
           <div className="flex mb-6">
             <div className="w-1/3 pr-4">
               <img
@@ -429,7 +557,10 @@ function Cart() {
                 value={rentalLocation}
                 onChange={(e) => setRentalLocation(e.target.value)}
                 placeholder="Nhập địa điểm nhận xe"
-                className="w-full px-3 py-2 border rounded-lg text-[#777777]"
+                disabled={loading}
+                className={`w-full px-3 py-2 border rounded-lg text-[#777777] transition-colors ${
+                  loading ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                }`}
                 required
               />
             </div>
@@ -445,7 +576,10 @@ function Cart() {
                   minDate={new Date()}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="Chọn ngày nhận xe"
-                  className="w-full px-3 py-2 border rounded-lg text-[#777777]"
+                  disabled={loading}
+                  className={`w-full px-3 py-2 border rounded-lg text-[#777777] ${
+                    loading ? 'bg-gray-100' : 'bg-white'
+                  }`}
                   required
                 />
               </div>
@@ -459,7 +593,10 @@ function Cart() {
                   minDate={rentalDate || new Date()}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="Chọn ngày trả xe"
-                  className="w-full px-3 py-2 border rounded-lg text-[#777777]"
+                  disabled={loading}
+                  className={`w-full px-3 py-2 border rounded-lg text-[#777777] ${
+                    loading ? 'bg-gray-100' : 'bg-white'
+                  }`}
                   required
                 />
               </div>
@@ -507,14 +644,16 @@ function Cart() {
               <label className="block text-[#777777] font-bold mb-2">
                 Phương thức thanh toán <span className="text-red-500">*</span>
               </label>
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 {/* Tùy chọn Tiền mặt */}
                 <div
-                  onClick={() => setPaymentMethod("Tiền mặt")}
-                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg ${
-                    paymentMethod === "Tiền mặt"
-                      ? "border-[#dd5c36] bg-[#fff5f0]"
-                      : "border-gray-300 bg-white"
+                  onClick={() => !loading && setPaymentMethod("Tiền mặt")}
+                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg transition-all ${
+                    loading 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : paymentMethod === "Tiền mặt"
+                      ? "border-[#dd5c36] bg-[#fff5f0] shadow-md"
+                      : "border-gray-300 bg-white hover:border-[#dd5c36] hover:bg-[#fff5f0]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -523,42 +662,90 @@ function Cart() {
                       alt="Tiền mặt"
                       className="w-8 h-8"
                     />
-                    <span className="text-[#777777] font-semibold">Tiền mặt</span>
+                    <span className="text-[#777777] font-semibold">
+                      Thanh toán tiền mặt
+                    </span>
                   </div>
                   <input
                     type="radio"
                     name="paymentMethod"
                     value="Tiền mặt"
                     checked={paymentMethod === "Tiền mặt"}
+                    disabled={loading}
                     readOnly
                     className="cursor-pointer"
                   />
                 </div>
 
-                {/* Tùy chọn Chuyển khoản */}
+                {/* Tùy chọn VNPAY */}
                 <div
-                  onClick={() => setPaymentMethod("Chuyển khoản")}
-                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg ${
-                    paymentMethod === "Chuyển khoản"
-                      ? "border-[#dd5c36] bg-[#fff5f0]"
-                      : "border-gray-300 bg-white"
+                  onClick={() => !loading && setPaymentMethod("Chuyển khoản VNPAY")}
+                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg transition-all ${
+                    loading 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : paymentMethod === "Chuyển khoản VNPAY"
+                      ? "border-[#dd5c36] bg-[#fff5f0] shadow-md"
+                      : "border-gray-300 bg-white hover:border-[#dd5c36] hover:bg-[#fff5f0]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <img
                       src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png"
-                      alt="Chuyển khoản"
-                      className="w-10 h-10 object-contain"
+                      alt="VNPay"
+                      className="w-10 h-8 object-contain"
                     />
-                    <span className="text-[#777777] font-semibold">
-                      VNPay Credit
-                    </span>
+                    <div>
+                      <span className="text-[#777777] font-semibold block">
+                        Thanh toán VNPAY
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Visa, MasterCard, ATM, QR Code
+                      </span>
+                    </div>
                   </div>
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="Chuyển khoản"
-                    checked={paymentMethod === "Chuyển khoản"}
+                    value="Chuyển khoản VNPAY"
+                    checked={paymentMethod === "Chuyển khoản VNPAY"}
+                    disabled={loading}
+                    readOnly
+                    className="cursor-pointer"
+                  />
+                </div>
+
+                {/* Tùy chọn PayPal */}
+                <div
+                  onClick={() => !loading && setPaymentMethod("Chuyển khoản PAYPAL")}
+                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg transition-all ${
+                    loading 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : paymentMethod === "Chuyển khoản PAYPAL"
+                      ? "border-[#dd5c36] bg-[#fff5f0] shadow-md"
+                      : "border-gray-300 bg-white hover:border-[#dd5c36] hover:bg-[#fff5f0]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="https://images.ctfassets.net/drk57q8lctrm/21FLkQ2lbOCWynXsDZvXO5/485a163f199ef7749b914e54d4dc3335/paypal-logo.webp"
+                      alt="PayPal"
+                      className="w-10 h-8 object-contain"
+                    />
+                    <div>
+                      <span className="text-[#777777] font-semibold block">
+                        Thanh toán PayPal
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Thanh toán quốc tế, bảo mật cao
+                      </span>
+                    </div>
+                  </div>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="Chuyển khoản PAYPAL"
+                    checked={paymentMethod === "Chuyển khoản PAYPAL"}
+                    disabled={loading}
                     readOnly
                     className="cursor-pointer"
                   />
@@ -575,11 +762,18 @@ function Cart() {
         visible={isMultiModalVisible}
         onOk={handleMultiOk}
         onCancel={handleMultiCancel}
+        closable={!loading}
+        maskClosable={!loading}
         footer={[
           <button
             key="cancel"
             onClick={handleMultiCancel}
-            className="bg-gray-300 rounded px-4 py-2 hover:bg-gray-400 ml-2"
+            disabled={loading}
+            className={`rounded px-4 py-2 ml-2 transition-colors ${
+              loading 
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed' 
+                : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
+            }`}
           >
             Hủy
           </button>,
@@ -587,14 +781,40 @@ function Cart() {
             key="confirm"
             onClick={handleMultiOk}
             disabled={loading}
-            className={`bg-[#dd5c36] px-4 py-2 rounded hover:bg-[#c04d2e] ml-6 text-white ${loading ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
+            className={`px-4 py-2 rounded transition-all ml-6 text-white font-semibold ${
+              loading
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-[#dd5c36] hover:bg-[#c04d2e] hover:scale-105'
+            }`}
           >
-            {loading ? "Đang xử lý..." : "Xác nhận"}
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <Spin size="small" className="mr-2" />
+                {paymentMethod === "Chuyển khoản PAYPAL" ? "Đang xử lý PayPal..." : 
+                 paymentMethod === "Chuyển khoản VNPAY" ? "Đang xử lý VNPAY..." : "Đang xử lý..."}
+              </span>
+            ) : (
+              "Xác nhận"
+            )}
           </button>,
         ]}
         width={800}
       >
-        <div className="p-4">
+        <div className="p-4 relative">
+          {/* Loading Overlay */}
+          {loading && (
+            <div className="absolute inset-0 bg-white bg-opacity-90 flex flex-col items-center justify-center z-50 rounded-lg">
+              <Spin size="large" />
+              <p className="mt-4 text-lg font-semibold text-gray-700">
+                {paymentMethod === "Chuyển khoản PAYPAL" 
+                  ? "Đang tạo liên kết thanh toán PayPal..." 
+                  : paymentMethod === "Chuyển khoản VNPAY"
+                  ? "Đang tạo liên kết thanh toán VNPAY..."
+                  : "Đang xử lý đơn hàng..."}
+              </p>
+            </div>
+          )}
+
           <div className="mb-6">
             <h3 className="text-lg font-bold mb-4 border-b pb-2">Danh sách xe được chọn</h3>
             
@@ -633,7 +853,10 @@ function Cart() {
                 value={rentalLocation}
                 onChange={(e) => setRentalLocation(e.target.value)}
                 placeholder="Nhập địa điểm nhận xe"
-                className="w-full px-3 py-2 border rounded-lg text-[#777777]"
+                disabled={loading}
+                className={`w-full px-3 py-2 border rounded-lg text-[#777777] transition-colors ${
+                  loading ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                }`}
                 required
               />
             </div>
@@ -649,7 +872,10 @@ function Cart() {
                   minDate={new Date()}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="Chọn ngày nhận xe"
-                  className="w-full px-3 py-2 border rounded-lg text-[#777777]"
+                  disabled={loading}
+                  className={`w-full px-3 py-2 border rounded-lg text-[#777777] ${
+                    loading ? 'bg-gray-100' : 'bg-white'
+                  }`}
                   required
                 />
               </div>
@@ -663,7 +889,10 @@ function Cart() {
                   minDate={rentalDate || new Date()}
                   dateFormat="dd/MM/yyyy"
                   placeholderText="Chọn ngày trả xe"
-                  className="w-full px-3 py-2 border rounded-lg text-[#777777]"
+                  disabled={loading}
+                  className={`w-full px-3 py-2 border rounded-lg text-[#777777] ${
+                    loading ? 'bg-gray-100' : 'bg-white'
+                  }`}
                   required
                 />
               </div>
@@ -711,14 +940,16 @@ function Cart() {
               <label className="block text-[#777777] font-bold mb-2">
                 Phương thức thanh toán <span className="text-red-500">*</span>
               </label>
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3">
                 {/* Tùy chọn Tiền mặt */}
                 <div
-                  onClick={() => setPaymentMethod("Tiền mặt")}
-                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg ${
-                    paymentMethod === "Tiền mặt"
-                      ? "border-[#dd5c36] bg-[#fff5f0]"
-                      : "border-gray-300 bg-white"
+                  onClick={() => !loading && setPaymentMethod("Tiền mặt")}
+                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg transition-all ${
+                    loading 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : paymentMethod === "Tiền mặt"
+                      ? "border-[#dd5c36] bg-[#fff5f0] shadow-md"
+                      : "border-gray-300 bg-white hover:border-[#dd5c36] hover:bg-[#fff5f0]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -727,42 +958,90 @@ function Cart() {
                       alt="Tiền mặt"
                       className="w-8 h-8"
                     />
-                    <span className="text-[#777777] font-semibold">Tiền mặt</span>
+                    <span className="text-[#777777] font-semibold">
+                      Thanh toán tiền mặt
+                    </span>
                   </div>
                   <input
                     type="radio"
                     name="paymentMethod"
                     value="Tiền mặt"
                     checked={paymentMethod === "Tiền mặt"}
+                    disabled={loading}
                     readOnly
                     className="cursor-pointer"
                   />
                 </div>
 
-                {/* Tùy chọn Chuyển khoản */}
+                {/* Tùy chọn VNPAY */}
                 <div
-                  onClick={() => setPaymentMethod("Chuyển khoản")}
-                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg ${
-                    paymentMethod === "Chuyển khoản"
-                      ? "border-[#dd5c36] bg-[#fff5f0]"
-                      : "border-gray-300 bg-white"
+                  onClick={() => !loading && setPaymentMethod("Chuyển khoản VNPAY")}
+                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg transition-all ${
+                    loading 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : paymentMethod === "Chuyển khoản VNPAY"
+                      ? "border-[#dd5c36] bg-[#fff5f0] shadow-md"
+                      : "border-gray-300 bg-white hover:border-[#dd5c36] hover:bg-[#fff5f0]"
                   }`}
                 >
                   <div className="flex items-center gap-3">
                     <img
                       src="https://cdn.haitrieu.com/wp-content/uploads/2022/10/Logo-VNPAY-QR-1.png"
-                      alt="Chuyển khoản"
-                      className="w-10 h-10 object-contain"
+                      alt="VNPay"
+                      className="w-10 h-8 object-contain"
                     />
-                    <span className="text-[#777777] font-semibold">
-                      VNPay Credit
-                    </span>
+                    <div>
+                      <span className="text-[#777777] font-semibold block">
+                        Thanh toán VNPAY
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Visa, MasterCard, ATM, QR Code
+                      </span>
+                    </div>
                   </div>
                   <input
                     type="radio"
                     name="paymentMethod"
-                    value="Chuyển khoản"
-                    checked={paymentMethod === "Chuyển khoản"}
+                    value="Chuyển khoản VNPAY"
+                    checked={paymentMethod === "Chuyển khoản VNPAY"}
+                    disabled={loading}
+                    readOnly
+                    className="cursor-pointer"
+                  />
+                </div>
+
+                {/* Tùy chọn PayPal */}
+                <div
+                  onClick={() => !loading && setPaymentMethod("Chuyển khoản PAYPAL")}
+                  className={`cursor-pointer flex items-center justify-between px-4 py-3 border rounded-lg transition-all ${
+                    loading 
+                      ? 'cursor-not-allowed opacity-50' 
+                      : paymentMethod === "Chuyển khoản PAYPAL"
+                      ? "border-[#dd5c36] bg-[#fff5f0] shadow-md"
+                      : "border-gray-300 bg-white hover:border-[#dd5c36] hover:bg-[#fff5f0]"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="https://images.ctfassets.net/drk57q8lctrm/21FLkQ2lbOCWynXsDZvXO5/485a163f199ef7749b914e54d4dc3335/paypal-logo.webp"
+                      alt="PayPal"
+                      className="w-10 h-8 object-contain"
+                    />
+                    <div>
+                      <span className="text-[#777777] font-semibold block">
+                        Thanh toán PayPal
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Thanh toán quốc tế, bảo mật cao
+                      </span>
+                    </div>
+                  </div>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="Chuyển khoản PAYPAL"
+                    checked={paymentMethod === "Chuyển khoản PAYPAL"}
+                    disabled={loading}
                     readOnly
                     className="cursor-pointer"
                   />

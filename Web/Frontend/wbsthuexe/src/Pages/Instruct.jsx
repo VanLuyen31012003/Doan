@@ -39,16 +39,16 @@ export default function Instruct() {
     {
       id: 4,
       icon: <FaShoppingCart className="text-4xl text-[#dd5c36]" />,
-      title: "Thêm vào giỏ hàng",
-      description: "Chọn thời gian thuê và thêm xe vào giỏ hàng yêu thích",
-      details: ["Chọn ngày bắt đầu thuê", "Chọn thời gian thuê", "Thêm vào giỏ hàng"]
+      title: "Nhấn chọn đặt xe",
+      description: "Chọn đặt xe hoặc thêm xe vào mục yêu thích",
+      details: ["Chọn ngày bắt đầu thuê", "Chọn thời gian thuê", "Kiểm tra lại thông tin đặt"]
     },
     {
       id: 5,
       icon: <FaCreditCard className="text-4xl text-[#dd5c36]" />,
       title: "Thanh toán",
       description: "Chọn phương thức thanh toán và hoàn tất đặt xe",
-      details: ["Thanh toán online qua VNPay", "Thanh toán tiền mặt", "Xác nhận đơn hàng"]
+      details: ["Thanh toán online qua VNPay", "Thanh toán tiền mặt", " Chờ xác nhận đơn đặt"]
     },
     {
       id: 6,
@@ -97,12 +97,18 @@ export default function Instruct() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {steps.map((step, index) => (
             <motion.div
-                  initial={{ opacity: 0, y: 80 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{duration: 1} }
+  initial={{ opacity: 0, y: 80 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{
+    duration: 0.6,
+    delay: index * 0.1,
+    ease: "easeOut"
+  }}
               key={step.id}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl  duration-300 p-6 border border-gray-100 hover:-translate-y-1"
-            >
+              whileHover={{ scale: 1.2 }}
+            whileTap={{ scale: 0.8 }}
+  className="bg-white rounded-2xl shadow-lg hover:shadow-xl p-6 border border-gray-100 transition-all duration-300 hover:-translate-y-1"
+>
               <div className="flex items-center justify-center w-16 h-16 bg-[#fff7f3] rounded-full mb-4 mx-auto">
                 {step.icon}
               </div>

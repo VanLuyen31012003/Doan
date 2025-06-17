@@ -19,6 +19,8 @@ import ConTact from "./Pages/Contact";
 import EditProfile from "./Pages/EditProfile";
 import Allposts from "./Pages/Allposts";
 import Instruct from "./Pages/Instruct";
+import PaypalResult from "./Pages/PaypalResult";
+import PayPalSuccess from "./Pages/PaypalResult";
 
 function App() {
   return (
@@ -37,9 +39,11 @@ function App() {
         <Route path="/infouser" element={<Infouser />} />
         <Route path="/yeuthich" element={<Cart />} />
         <Route path="/payment-result" element={<PaymentResult />} />
+        <Route path="/paypal-result" element={<PayPalSuccess />} />
         <Route path="/edit-profile" element={<EditProfile/>} />
         <Route path="/chitietdondat/:id" element={<Detailorder />} />
-        <Route path="/huongdan" element={<Instruct/> } />
+        <Route path="/huongdan" element={<Instruct />} />
+        
 
       </Routes>
       <ToastContainer

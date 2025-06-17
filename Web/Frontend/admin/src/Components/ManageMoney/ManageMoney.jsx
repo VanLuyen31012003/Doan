@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Statistic, Table, Button, Typography, Spin, Select, DatePicker } from 'antd';
-import { DollarOutlined, FileTextOutlined } from '@ant-design/icons';
+import { Card, Row, Col, Statistic, Table, Button, Typography, Spin, Select, DatePicker, Space } from 'antd';
+import { DollarOutlined, FileTextOutlined, DownloadOutlined, FileExcelOutlined } from '@ant-design/icons';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import moment from 'moment';
 import 'moment/locale/vi';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import ApiDonDat from '../../Api/ApiDonDat';
 
 const { Title, Text } = Typography;
@@ -17,10 +19,19 @@ const ORDER_STATUS = {
   DANG_THUE: 4
 };
 
+const statusMap = {
+  [ORDER_STATUS.CHO_XAC_NHAN]: 'Chờ xác nhận',
+  [ORDER_STATUS.DA_XAC_NHAN]: 'Đã xác nhận',
+  [ORDER_STATUS.HOAN_THANH]: 'Hoàn thành',
+  [ORDER_STATUS.HUY]: 'Đã hủy',
+  [ORDER_STATUS.DANG_THUE]: 'Đang thuê'
+};
+
 const quarterList = [1, 2, 3, 4];
 
 const ManageMoney = () => {
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [orders, setOrders] = useState([]);
   const [statType, setStatType] = useState('month'); // 'day' | 'month' | 'quarter' | 'year'
   const [selectedYear, setSelectedYear] = useState(moment().year());
@@ -239,6 +250,203 @@ const ManageMoney = () => {
       .slice(0, 5);
   };
 
+  // Lấy đơn hàng đã lọc theo thời gian
+  const getFilteredOrders = () => {
+    if (!orders.length) return [];
+    
+    let filteredOrders = [];
+    if (statType === 'day') {
+      filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return orderDate.isSame(moment(selectedDay), 'day');
+      });
+    } else if (statType === 'month') {
+      filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return orderDate.year() === selectedYear && orderDate.month() + 1 === selectedMonth;
+      });
+    } else if (statType === 'quarter') {
+      filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return orderDate.year() === selectedYear && Math.ceil((orderDate.month() + 1) / 3) === selectedQuarter;
+      });
+    } else if (statType === 'year') {
+      filteredOrders = orders.filter(order => {
+        const orderDate = moment(order.ngayBatDau);
+        return orderDate.year() === selectedYear;
+      });
+    }
+    
+    return filteredOrders.sort((a, b) => moment(b.ngayBatDau) - moment(a.ngayBatDau));
+  };
+
+  // Hàm lấy text mô tả thời gian hiện tại
+  const getPeriodText = () => {
+    if (statType === 'day') {
+      return moment(selectedDay).format('DD/MM/YYYY');
+    }
+    if (statType === 'month') {
+      return `Tháng ${selectedMonth}/${selectedYear}`;
+    }
+    if (statType === 'quarter') {
+      return `Quý ${selectedQuarter}/${selectedYear}`;
+    }
+    if (statType === 'year') {
+      return `Năm ${selectedYear}`;
+    }
+    return '';
+  };
+
+  // Hàm xuất Excel
+  const exportToExcel = () => {
+    setExporting(true);
+    
+    try {
+      // Tạo workbook
+      const workbook = XLSX.utils.book_new();
+      
+      // Sheet 1: Tổng quan
+      const summarySheet = [
+        ['BÁO CÁO DOANH THU', '', '', ''],
+        ['Thời gian:', getPeriodText(), '', ''],
+        ['Ngày xuất:', moment().format('DD/MM/YYYY HH:mm:ss'), '', ''],
+        ['', '', '', ''],
+        ['TỔNG QUAN', '', '', ''],
+        ['Chỉ tiêu', 'Giá trị', '', ''],
+        ['Tổng doanh thu', `${summaryData.totalRevenue.toLocaleString('vi-VN')} VNĐ`, '', ''],
+        ['Đơn hàng hoàn thành', `${summaryData.completedOrders} đơn`, '', ''],
+        ['Đơn hàng bị hủy', `${summaryData.canceledOrders} đơn`, '', ''],
+        ['Giá trị trung bình/đơn', `${summaryData.avgOrderValue.toLocaleString('vi-VN')} VNĐ`, '', '']
+      ];
+      
+      const summaryWS = XLSX.utils.aoa_to_sheet(summarySheet);
+      
+      // Merge cells cho tiêu đề
+      summaryWS['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }, // Tiêu đề chính
+        { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } }  // Tiêu đề tổng quan
+      ];
+      
+      // Set column widths
+      summaryWS['!cols'] = [
+        { width: 25 },
+        { width: 25 },
+        { width: 15 },
+        { width: 15 }
+      ];
+      
+      XLSX.utils.book_append_sheet(workbook, summaryWS, 'Tổng quan');
+      
+      // Sheet 2: Chi tiết doanh thu theo thời gian
+      const chartData = getChartData();
+      const revenueDetailSheet = [
+        ['CHI TIẾT DOANH THU THEO THỜI GIAN', ''],
+        ['Thời gian', 'Doanh thu (VNĐ)'],
+        ...chartData.map(item => [
+          item.label,
+          item.revenue
+        ])
+      ];
+      
+      const revenueWS = XLSX.utils.aoa_to_sheet(revenueDetailSheet);
+      
+      // Merge cell cho tiêu đề
+      revenueWS['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } }
+      ];
+      
+      // Set column widths
+      revenueWS['!cols'] = [
+        { width: 20 },
+        { width: 20 }
+      ];
+      
+      XLSX.utils.book_append_sheet(workbook, revenueWS, 'Chi tiết doanh thu');
+      
+      // Sheet 3: Top đơn hàng giá trị cao
+      const topOrders = getTopOrdersData();
+      const topOrdersSheet = [
+        ['TOP ĐƠN HÀNG GIÁ TRỊ CAO', '', '', '', ''],
+        ['Mã đơn', 'Khách hàng', 'Ngày bắt đầu', 'Ngày kết thúc', 'Giá trị đơn hàng (VNĐ)'],
+        ...topOrders.map(order => [
+          order.donDatXeId,
+          order.khachHangName,
+          moment(order.ngayBatDau).format('DD/MM/YYYY'),
+          moment(order.ngayKetThuc).format('DD/MM/YYYY'),
+          order.tongTien || 0
+        ])
+      ];
+      
+      const topOrdersWS = XLSX.utils.aoa_to_sheet(topOrdersSheet);
+      
+      // Merge cell cho tiêu đề
+      topOrdersWS['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }
+      ];
+      
+      // Set column widths
+      topOrdersWS['!cols'] = [
+        { width: 10 },
+        { width: 20 },
+        { width: 15 },
+        { width: 15 },
+        { width: 20 }
+      ];
+      
+      XLSX.utils.book_append_sheet(workbook, topOrdersWS, 'Top đơn hàng');
+      
+      // Sheet 4: Tất cả đơn hàng trong kỳ
+      const filteredOrders = getFilteredOrders();
+      const allOrdersSheet = [
+        ['TẤT CẢ ĐƠN HÀNG TRONG KỲ', '', '', '', '', '', ''],
+        ['Mã đơn', 'Khách hàng', 'Ngày bắt đầu', 'Ngày kết thúc', 'Trạng thái', 'Tổng tiền (VNĐ)', 'Ghi chú'],
+        ...filteredOrders.map(order => [
+          order.donDatXeId,
+          order.khachHangName,
+          moment(order.ngayBatDau).format('DD/MM/YYYY'),
+          moment(order.ngayKetThuc).format('DD/MM/YYYY'),
+          statusMap[order.trangThai] || 'Không xác định',
+          order.tongTien || 0,
+          order.trangThai === ORDER_STATUS.HOAN_THANH ? 'Đã thanh toán' : 
+          order.trangThai === ORDER_STATUS.HUY ? 'Đơn hàng bị hủy' : 'Chưa thanh toán'
+        ])
+      ];
+      
+      const allOrdersWS = XLSX.utils.aoa_to_sheet(allOrdersSheet);
+      
+      // Merge cell cho tiêu đề
+      allOrdersWS['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 6 } }
+      ];
+      
+      // Set column widths
+      allOrdersWS['!cols'] = [
+        { width: 10 },
+        { width: 20 },
+        { width: 15 },
+        { width: 15 },
+        { width: 15 },
+        { width: 18 },
+        { width: 15 }
+      ];
+      
+      XLSX.utils.book_append_sheet(workbook, allOrdersWS, 'Tất cả đơn hàng');
+      
+      // Xuất file
+      const fileName = `BaoCaoDoanhThu_${getPeriodText().replace(/[/\s]/g, '_')}_${moment().format('DDMMYYYY_HHmmss')}.xlsx`;
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      
+      saveAs(blob, fileName);
+      
+    } catch (error) {
+      console.error('Error exporting to Excel:', error);
+      alert('Có lỗi xảy ra khi xuất file Excel');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // Các cột cho bảng top đơn hàng
   const topOrdersColumns = [
     {
@@ -404,7 +612,21 @@ const ManageMoney = () => {
               ))}
             </Select>
           )}
-          <Button type="primary" onClick={fetchData} loading={loading}>Cập nhật dữ liệu</Button>
+          
+          <Space>
+            <Button type="primary" onClick={fetchData} loading={loading}>
+              Cập nhật dữ liệu
+            </Button>
+            <Button 
+              type="default" 
+              icon={<FileExcelOutlined />}
+              onClick={exportToExcel}
+              loading={exporting}
+              style={{ backgroundColor: '#52c41a', borderColor: '#52c41a', color: 'white' }}
+            >
+              Xuất Excel
+            </Button>
+          </Space>
         </div>
       </Card>
       
@@ -458,7 +680,19 @@ const ManageMoney = () => {
       <Card 
         title={getTitle()}
         className="mb-4"
-        extra={<Text type="secondary">{`Tổng doanh thu: ${summaryData.totalRevenue.toLocaleString('vi-VN')} VNĐ`}</Text>}
+        extra={
+          <Space>
+            <Text type="secondary">{`Tổng doanh thu: ${summaryData.totalRevenue.toLocaleString('vi-VN')} VNĐ`}</Text>
+            <Button 
+              size="small"
+              icon={<DownloadOutlined />}
+              onClick={exportToExcel}
+              loading={exporting}
+            >
+              Xuất báo cáo
+            </Button>
+          </Space>
+        }
       >
         {loading ? (
           <div className="flex justify-center items-center" style={{ height: 400 }}>
